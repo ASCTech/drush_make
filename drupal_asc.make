@@ -120,7 +120,7 @@ projects[quickSites][download][url] = "git@github.com:ASCTech/drupasc-quicksites
 libraries[jquery_ui][download][type] = "get"
 libraries[jquery_ui][download][url] = "http://jquery-ui.googlecode.com/files/jquery-ui-1.7.zip"
 libraries[jquery_ui][directory_name] = "jquery.ui"
-libraries[jquery_ui][destination] = "libaries"
+libraries[jquery_ui][destination] = "libraries"
 
 ; CKEditor
 libraries[ckeditor][download][type]= "get"
