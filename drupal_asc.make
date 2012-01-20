@@ -109,6 +109,11 @@ projects[people_index][type] = "module"
 projects[people_index][download][type] = "git"
 projects[people_index][download][url] = "git://github.com/ASCTech/drupasc-people_index.git"
 
+;Themes
+projects[quickSites][type] = "theme"
+projects[quickSites][download][type] = "git"
+projects[quickSites][download][url] = "git://github.com/ASCTech/drupasc-quicksites.git"
+
 ;Libraries
 
 ; jQuery UI
