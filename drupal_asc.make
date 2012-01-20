@@ -110,8 +110,19 @@ projects[people_index][download][type] = "git"
 projects[people_index][download][url] = "git://github.com/ASCTech/drupasc-people_index.git"
 
 ;Libraries
-libraries[] = ckeditor
-libraries[] = fckeditor
-libraries[] = jwysiwyg
-libraries[] = tinymce
-libraries[] = jquery
+
+; jQuery UI
+libraries[jquery_ui][download][type] = "get"
+libraries[jquery_ui][download][url] = "http://jquery-ui.googlecode.com/files/jquery-ui-1.7.zip"
+libraries[jquery_ui][directory_name] = "jquery.ui"
+libraries[jquery_ui][destination] = "modules/contrib/jquery_ui"
+
+; CKEditor
+libraries[ckeditor][download][type]= "get"
+libraries[ckeditor][download][url] = "http://download.cksource.com/CKEditor/CKEditor/CKEditor%203.4/ckeditor_3.4.zip"
+libraries[ckeditor][directory_name] = "ckeditor"
+libraries[ckeditor][destination] = "libraries"
+
+; TinyMCE
+libraries[tinymce][download][type] = "get"
+libraries[tinymce][download][url] = "http://www.tinymce.com/track.php?url=http%3A%2F%2Fgithub.com%2Fdownloads%2Ftinymce%2Ftinymce%2Ftinymce_3.4.7.zip"
