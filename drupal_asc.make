@@ -131,3 +131,8 @@ libraries[ckeditor][destination] = "libraries"
 ; TinyMCE
 libraries[tinymce][download][type] = "get"
 libraries[tinymce][download][url] = "http://www.tinymce.com/track.php?url=http%3A%2F%2Fgithub.com%2Fdownloads%2Ftinymce%2Ftinymce%2Ftinymce_3.4.7.zip"
+
+
+; Patches
+;Upload module to work with PHP 5.3
+projects[upload][patch][] = "http://drupal.org/files/issues/925580-php5-3-drupal-alter-14.patch"
