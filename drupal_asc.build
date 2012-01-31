@@ -3,20 +3,25 @@
 core = 6.x
 api = 2
 
-projects[] = drupal
+; Upload module to work with PHP 5.3
+projects[drupal][type] = "core"
+projects[drupal][version] = 6.22
+projects[drupal][patch][] = "http://drupal.org/files/issues/925580-php5-3-drupal-alter-14.patch"
 
 ; Contrib
 projects[] = "admin_menu"
 projects[] = "advanced_help"
 projects[] = "block_edit"
 projects[] = "book_search"
+projects[] = "boost"
 projects[] = "calendar"
 projects[] = "captcha"
 projects[] = "cck"
 projects[] = "config_perms"
 projects[] = "contemplate"
 projects[] = "ctools"
-projects[] = "custom_breadcrumbs"
+projects[custom_breadcrumbs][type] = "module"
+projects[custom_breadcrumbs][patch][] = "http://drupal.org/files/custom_breadcrumbs-1327960-14.patch"
 projects[] = "custom_formatters"
 projects[] = "date"
 projects[] = "devel"
@@ -114,6 +119,14 @@ projects[quickSites][type] = "theme"
 projects[quickSites][download][type] = "git"
 projects[quickSites][download][url] = "git@github.com:ASCTech/drupasc-quicksites.git"
 
+projects[artsandsciences][type] = "theme"
+projects[artsandsciecnes][download][type] = "git"
+projects[artsandsciences][download][url] = "git@github.com:ASCTech/drupasc-artsandsciences.git"
+
+projects[asc_standard][type] = "theme"
+projects[asc_standard][download][type] = "git"
+projects[asc_standard][download][url] = "git@github.com:ASCTech/drupasc-asc_standard.git"
+
 ;Libraries
 
 ; jQuery UI
@@ -128,11 +141,15 @@ libraries[ckeditor][download][url] = "http://download.cksource.com/CKEditor/CKEd
 libraries[ckeditor][directory_name] = "ckeditor"
 libraries[ckeditor][destination] = "libraries"
 
+; FCKEditor
+libraries[fckeditor][download][type]= "get"
+libraries[fckeditor][download][url] = "http://downloads.sourceforge.net/project/fckeditor/FCKeditor/2.6.6/FCKeditor_2.6.6.zip?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Ffckeditor%2F&ts=1327351127&use_mirror=superb-sea2"
+libraries[fckeditor][directory_name] = "fckeditor"
+libraries[fckeditor][destination] = "libraries"
+
 ; TinyMCE
 libraries[tinymce][download][type] = "get"
 libraries[tinymce][download][url] = "http://www.tinymce.com/track.php?url=http%3A%2F%2Fgithub.com%2Fdownloads%2Ftinymce%2Ftinymce%2Ftinymce_3.4.7.zip"
 
 
-; Patches
-;Upload module to work with PHP 5.3
-projects[upload][patch][] = "http://drupal.org/files/issues/925580-php5-3-drupal-alter-14.patch"
+; Contrib Patches
