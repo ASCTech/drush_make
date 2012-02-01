@@ -4,16 +4,20 @@ core = 6.x
 api = 2
 
 ; Upload module to work with PHP 5.3
-projects[drupal][type] = "core"
-projects[drupal][version] = 6.22
-projects[drupal][patch][] = "http://drupal.org/files/issues/925580-php5-3-drupal-alter-14.patch"
+; projects[drupal][type] = "core"
+; projects[drupal][version] = 6.22
+; projects[drupal][patch][] = "http://drupal.org/files/issues/925580-php5-3-drupal-alter-14.patch"
+
+projects[pressflow][type] = "core"
+projects[pressflow][download][type] = "get"
+projects[pressflow][download][url] = "http://files.pressflow.org/pressflow-6-current.tar.gz"
 
 ; Contrib
 projects[] = "admin_menu"
 projects[] = "advanced_help"
 projects[] = "block_edit"
 projects[] = "book_search"
-projects[] = "boost"
+projects[boost] = 1.x-dev
 projects[] = "calendar"
 projects[] = "captcha"
 projects[] = "cck"
@@ -120,8 +124,12 @@ projects[quickSites][download][type] = "git"
 projects[quickSites][download][url] = "git@github.com:ASCTech/drupasc-quicksites.git"
 
 projects[artsandsciences][type] = "theme"
-projects[artsandsciecnes][download][type] = "git"
+projects[artsandsciences][download][type] = "git"
 projects[artsandsciences][download][url] = "git@github.com:ASCTech/drupasc-artsandsciences.git"
+
+projects[osugeneric][type] = "theme"
+projects[osugeneric][download][type] = "git"
+projects[osugeneric][download][url] = "git@github.com:ASCTech/drupasc-osugeneric.git"
 
 projects[asc_standard][type] = "theme"
 projects[asc_standard][download][type] = "git"
