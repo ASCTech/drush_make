@@ -174,7 +174,7 @@ libraries[fckeditor][destination] = "libraries"
 
 ; TinyMCE
 libraries[tinymce][download][type] = "get"
-libraries[tinymce][download][url] = "http://www.tinymce.com/track.php?url=http%3A%2F%2Fgithub.com%2Fdownloads%2Ftinymce%2Ftinymce%2Ftinymce_3.4.7.zip"
+libraries[tinymce][download][url] = "http://www.tinymce.com/track.php?url=http%3A%2F%2Fgithub.com%2Fdownloads%2Ftinymce%2Ftinymce%2Ftinymce_3.4.8.zip"
 
 
 ; Contrib Patches
