@@ -3,15 +3,15 @@
 core = 6.x
 api = 2
 
-; Upload module to work with PHP 5.3
 ; projects[drupal][type] = "core"
 ; projects[drupal][version] = 6.22
 
 projects[pressflow][type] = "core"
-projects[pressflow][download][type] = "get"
-projects[pressflow][download][url] = "http://files.pressflow.org/pressflow-6-current.tar.gz"
+projects[pressflow][download][type] = "git"
+projects[pressflow][download][url] = "https://github.com/pressflow/6.git"
 projects[pressflow][patch][] = "http://drupal.org/files/issues/555362-1.update_parse_files.D6.patch"
 projects[pressflow][patch][] = "http://drupal.org/files/issues/925580-php5-3-drupal-alter-14.patch"
+projects[pressflow][patch][] = "http://drupal.org/files/issues/ereg-suppress_warnings-883038-27.patch"
 
 ; Contrib
 projects[] = "admin_menu"
@@ -23,7 +23,9 @@ projects[] = "cck"
 projects[] = "coder"
 projects[] = "config_perms"
 projects[] = "contemplate"
-projects[] = "contextual"
+projects[contextual][type] = "module"
+projects[contextual][version] = "2.0-alpha2"
+projects[contextual][patch] = "https://raw.github.com/mbutsko/drupal-contextual/master/php53.patch"
 projects[] = "ctools"
 projects[custom_breadcrumbs][type] = "module"
 projects[custom_breadcrumbs][patch][] = "http://drupal.org/files/custom_breadcrumbs-1327960-14.patch"
@@ -35,12 +37,12 @@ projects[] = "email"
 projects[] = "features"
 projects[] = "filefield"
 projects[] = "google_analytics"
-projects[] = "ie_css_optimizier"
 projects[] = "image"
 projects[] = "imageapi"
 projects[] = "imagecache"
 projects[] = "imagefield"
 projects[] = "imagefield_crop"
+projects[] = "image_resize_filter"
 projects[] = "imce"
 projects[] = "imce_mkdir"
 projects[] = "imce_wysiwyg"
@@ -57,6 +59,7 @@ projects[] = "menu_breadcrumb"
 projects[] = "node_clone"
 projects[] = "node_export"
 projects[] = "pathauto"
+projects[] = "performance"
 projects[] = "phone"
 projects[] = "piwik"
 projects[] = "recaptcha"
@@ -82,17 +85,75 @@ projects[] = "xmlsitemap"
 
 
 ;Custom
-projects[asc_events_form][type] = "module"
-projects[asc_events_form][download][type] = "git"
-projects[asc_events_form][download][url] = "git@github.com:ASCTech/drupasc-asc_events_form.git"
+projects[asc_eventsindex][type] = "module"
+projects[asc_eventsindex][download][type] = "git"
+projects[asc_eventsindex][download][url] = "git@github.com:ASCTech/asc_eventsindex.git"
+projects[asc_eventsindex][destination] = "modules/custom_modules"
+
+projects[asc_login_override][type] = "module"
+projects[asc_login_override][download][type] = "git"
+projects[asc_login_override][download][url] = "git@github.com:ASCTech/asc_login_override.git"
+projects[asc_login_override][destination] = "modules/custom_modules"
+
+projects[asc_quicksites][type] = "module"
+projects[asc_quicksites][download][type] = "git"
+projects[asc_quicksites][download][url] = "git@github.com:ASCTech/asc_quicksites.git"
+projects[asc_quicksites][destination] = "modules/custom_modules"
+
+projects[asc_quicksites_features][type] = "module"
+projects[asc_quicksites_features][download][type] = "git"
+projects[asc_quicksites_features][download][url] = "git@github.com:ASCTech/asc_quicksites_features.git"
+projects[asc_quicksites_features][destination] = "modules/custom_modules"
+
+projects[asc_shibboleth_configuration][type] = "module"
+projects[asc_shibboleth_configuration][download][type] = "git"
+projects[asc_shibboleth_configuration][download][url] = "git@github.com:ASCTech/asc_shibboleth_configuration.git"
+projects[asc_shibboleth_configuration][destination] = "modules/custom_modules"
+
+projects[asc_sitemanager][type] = "module"
+projects[asc_sitemanager][download][type] = "git"
+projects[asc_sitemanager][download][url] = "git@github.com:ASCTech/asc_sitemanager.git"
+projects[asc_sitemanager][destination] = "modules/custom_modules"
+
+projects[asc_sql_migration][type] = "module"
+projects[asc_sql_migration][download][type] = "git"
+projects[asc_sql_migration][download][url] = "git@github.com:ASCTech/asc_sql_migration.git"
+projects[asc_sql_migration][destination] = "modules/custom_modules"
+
+projects[asc_universal][type] = "module"
+projects[asc_universal][download][type] = "git"
+projects[asc_universal][download][url] = "git@github.com:ASCTech/asc_universal.git"
+projects[asc_universal][destination] = "modules/custom_modules"
+
+projects[cfpeople][type] = "module"
+projects[cfpeople][download][type] = "git"
+projects[cfpeople][download][url] = "git@github.com:ASCTech/cfpeople.git"
+projects[cfpeople][destination] = "modules/custom_modules"
+
+projects[ckeditor_styles][type] = "module"
+projects[ckeditor_styles][download][type] = "git"
+projects[ckeditor_styles][download][url] = "git@github.com:ASCTech/ckeditor_styles.git"
+projects[ckeditor_styles][destination] = "modules/custom_modules"
+
+projects[qs_rotor][type] = "module"
+projects[qs_rotor][download][type] = "git"
+projects[qs_rotor][download][url] = "git@github.com:ASCTech/qs_rotor.git"
+projects[qs_rotor][destination] = "modules/custom_modules"
 
 ;Themes
-projects[quickSites][type] = "theme"
-projects[quickSites][download][type] = "git"
-projects[quickSites][download][url] = "git@github.com:ASCTech/drupasc-quicksites.git"
+projects[quicksites][type] = "theme"
+projects[quicksites][download][type] = "git"
+projects[quicksites][download][url] = "git@github.com:ASCTech/quicksites.git"
+
+projects[design][type] = "theme"
+projects[design][download][type] = "git"
+projects[design][download][url] = "git@github.com:ASCTech/design.git"
+
+projects[english][type] = "theme"
+projects[english][download][type] = "git"
+projects[english][download][url] = "git@github.com:ASCTech/english.git"
 
 ;Libraries
-
 ; jQuery UI
 libraries[jquery_ui][download][type] = "get"
 libraries[jquery_ui][download][url] = "http://jquery-ui.googlecode.com/files/jquery-ui-1.7.zip"

@@ -8,10 +8,11 @@ api = 2
 ; projects[drupal][version] = 6.22
 
 projects[pressflow][type] = "core"
-projects[pressflow][download][type] = "get"
-projects[pressflow][download][url] = "http://files.pressflow.org/pressflow-6-current.tar.gz"
+projects[pressflow][download][type] = "git"
+projects[pressflow][download][url] = "https://github.com/pressflow/6.git"
 projects[pressflow][patch][] = "http://drupal.org/files/issues/555362-1.update_parse_files.D6.patch"
 projects[pressflow][patch][] = "http://drupal.org/files/issues/925580-php5-3-drupal-alter-14.patch"
+projects[pressflow][patch][] = "http://drupal.org/files/issues/ereg-suppress_warnings-883038-27.patch"
 
 ; Contrib
 projects[] = "admin_menu"
@@ -26,8 +27,10 @@ projects[] = "config_perms"
 projects[] = "contemplate"
 projects[] = "ctools"
 projects[custom_breadcrumbs][type] = "module"
-projects[custom_breadcrumbs][patch][] = "http://drupal.org/files/custom_breadcrumbs-1327960-14.patch"
-projects[] = "custom_formatters"
+projects[custom_breadcrumbs][version] = "2.0-rc1"
+projects[custom_breadcrumbs][patch][] = "http://drupal.org/files/patch_1333878.patch"
+projects[custom_formatters][type] = "module"
+projects[custom_formatters][patch][] = "https://raw.github.com/mbutsko/drupal-contextual/master/formatters.patch"
 projects[] = "date"
 projects[] = "devel"
 projects[] = "devel_themer"
