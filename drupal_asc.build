@@ -22,6 +22,7 @@ projects[calendar][patch][] = "http://drupal.org/files/issues/default_or_php_arg
 projects[] = "captcha"
 projects[] = "cck"
 projects[] = "config_perms"
+projects[] = "contextual"
 projects[] = "contemplate"
 projects[] = "ctools"
 projects[custom_breadcrumbs][type] = "module"
