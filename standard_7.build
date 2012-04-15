@@ -1,0 +1,77 @@
+; $Id$
+
+core = 7.x
+api = 2
+
+; projects[drupal][type] = "core"
+; projects[drupal][version] = 6.22
+
+projects[pressflow][type] = "core"
+projects[pressflow][download][type] = "git"
+projects[pressflow][download][url] = "https://github.com/pressflow/6.git"
+
+; Contrib
+;projects[] = "admin_menu"
+;projects[boost] = 1.x-dev
+projects[calendar][type] = "module"
+projects[] = "captcha"
+projects[] = "coder"
+projects[] = "config_perms"
+projects[] = "ctools"
+projects[custom_breadcrumbs][type] = "module"
+projects[custom_formatters][type] = "module"
+projects[] = "date"
+projects[] = "devel"
+projects[] = "email"
+projects[] = "features"
+projects[] = "filefield"
+projects[] = "google_analytics"
+projects[] = "imagefield_crop"
+projects[] = "image_resize_filter"
+projects[] = "imce"
+projects[] = "imce_mkdir"
+projects[] = "imce_wysiwyg"
+projects[] = "jquery_plugin"
+projects[] = "jquery_ui"
+projects[] = "jquery_update"
+projects[] = "link"
+projects[] = "linkchecker"
+projects[] = "logintoboggan"
+projects[] = "masquerade"
+projects[] = "menu_block"
+projects[] = "menu_breadcrumb"
+projects[] = "node_clone"
+projects[] = "pathauto"
+projects[] = "performance"
+projects[] = "phone"
+projects[] = "piwik"
+projects[] = "recaptcha"
+projects[] = "search404"
+projects[shib_auth][type] = "module"
+projects[shib_auth][patch][] = "https://raw.github.com/ASCTech/Drupatches/master/shib_auth-php_53.patch"
+projects[] = "views"
+projects[] = "views_slideshow"
+projects[webform_submissions_acl][type] = "module"
+projects[webform_submissions_acl][patch][] = "http://drupal.org/files/issues/webform_3_compatability-876064-18.patch"
+projects[] = "wysiwyg"
+projects[] = "xmlsitemap"
+
+
+;Custom
+
+;Themes
+
+;Libraries
+; jQuery UI
+libraries[jquery_ui][download][type] = "get"
+libraries[jquery_ui][download][url] = "http://jquery-ui.googlecode.com/files/jquery-ui-1.7.zip"
+libraries[jquery_ui][directory_name] = "jquery.ui"
+libraries[jquery_ui][destination] = "libraries"
+
+; CKEditor
+libraries[ckeditor][download][type]= "get"
+libraries[ckeditor][download][url] = "http://download.cksource.com/CKEditor/CKEditor/CKEditor%203.4/ckeditor_3.4.zip"
+libraries[ckeditor][directory_name] = "ckeditor"
+libraries[ckeditor][destination] = "libraries"
+
+; Contrib Patches
