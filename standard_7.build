@@ -3,28 +3,29 @@
 core = 7.x
 api = 2
 
-; projects[drupal][type] = "core"
-; projects[drupal][version] = 6.22
 
 projects[pressflow][type] = "core"
 projects[pressflow][download][type] = "git"
-projects[pressflow][download][url] = "https://github.com/pressflow/6.git"
+projects[pressflow][download][url] = "https://github.com/pressflow/7.git"
 
 ; Contrib
 ;projects[] = "admin_menu"
+projects[] = "block_titlelink"
 ;projects[boost] = 1.x-dev
 projects[calendar][type] = "module"
 projects[] = "captcha"
 projects[] = "coder"
 projects[] = "config_perms"
+projects[] = "context"
 projects[] = "ctools"
 projects[custom_breadcrumbs][type] = "module"
 projects[custom_formatters][type] = "module"
 projects[] = "date"
 projects[] = "devel"
+projects[] = "delta"
 projects[] = "email"
 projects[] = "features"
-projects[] = "filefield"
+;projects[] = "filefield"
 projects[] = "google_analytics"
 projects[] = "imagefield_crop"
 projects[] = "image_resize_filter"
@@ -34,13 +35,16 @@ projects[] = "imce_wysiwyg"
 projects[] = "jquery_plugin"
 projects[] = "jquery_ui"
 projects[] = "jquery_update"
+projects[] = "libraries"
 projects[] = "link"
 projects[] = "linkchecker"
 projects[] = "logintoboggan"
 projects[] = "masquerade"
 projects[] = "menu_block"
 projects[] = "menu_breadcrumb"
+projects[] = "migrate"
 projects[] = "node_clone"
+projects[] = "omega_tools"
 projects[] = "pathauto"
 projects[] = "performance"
 projects[] = "phone"
@@ -48,11 +52,13 @@ projects[] = "piwik"
 projects[] = "recaptcha"
 projects[] = "search404"
 projects[shib_auth][type] = "module"
-projects[shib_auth][patch][] = "https://raw.github.com/ASCTech/Drupatches/master/shib_auth-php_53.patch"
+projects[shib_provision][type] = "module"
+projects[] = "socialmedia"
+projects[] = "strongarm"
+projects[] = "token"
 projects[] = "views"
 projects[] = "views_slideshow"
-projects[webform_submissions_acl][type] = "module"
-projects[webform_submissions_acl][patch][] = "http://drupal.org/files/issues/webform_3_compatability-876064-18.patch"
+projects[] = "widgets"
 projects[] = "wysiwyg"
 projects[] = "xmlsitemap"
 
@@ -60,6 +66,7 @@ projects[] = "xmlsitemap"
 ;Custom
 
 ;Themes
+projects[omega][type] = "theme"
 
 ;Libraries
 ; jQuery UI
