@@ -1,0 +1,13 @@
+diff --git a/sites/all/modules/contextual/contextual.module b/sites/all/modules/contextual/contextual.module
+index 0fa148e..f67a5c6 100644
+--- a/sites/all/modules/contextual/contextual.module
++++ b/sites/all/modules/contextual/contextual.module
+@@ -121,7 +121,7 @@ function views_admin_link($type, $object) {
+         'attributes' => array('class' => 'icon-edit'),
+         'query' => array('destination' => $_GET['q']),
+       );
+-      if ($display_id = $object->display_handler->display->id) {
++      if ((isset($object->display_handler->display->id)) && ($display_id = $object->display_handler->display->id )) {
+         $links['views-edit']['fragment'] = 'views-tab-'. $display_id;
+       }
+     }
