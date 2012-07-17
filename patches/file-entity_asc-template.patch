@@ -1,0 +1,16 @@
+diff --git a/file_entity.tpl.php b/file_entity.tpl.php
+index 9ea46dd..516e633 100644
+--- a/file_entity.tpl.php
++++ b/file_entity.tpl.php
+@@ -84,7 +84,10 @@
+     <?php
+       // We hide the links now so that we can render them later.
+       hide($content['links']);
+-      print render($content);
++
++      $content['file']['#alt'] = $field_file_image_alt_text['und']['0']['safe_value'];
++      $url = parse_url(file_create_url($uri));
++      print '<a rel="lightbox[index]" href="' . $url['path'] . '">' . render($content) . '</a>';
+     ?>
+   </div>
+ 
