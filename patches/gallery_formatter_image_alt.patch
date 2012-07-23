@@ -1,0 +1,24 @@
+diff --git a/galleryformatter.module b/galleryformatter.module
+index 543bfd6..e13347d 100644
+--- a/galleryformatter.module
++++ b/galleryformatter.module
+@@ -243,14 +243,15 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+      */
+     // Grab and sanitize image information
+     // $renderitems['slides'][$delta]['description'] = $item['description']; // so far no description in d7 image fields
+-    $item['title'] = (!empty($item['title'])) ? $item['title'] : ''; // prevents php notices
++    //$item['title'] = (!empty($item['title'])) ? $item['title'] : ''; // prevents php notices
+     $renderitems['slides'][$delta]['title'] = $item['title'];
+-    $item['filename'] = $item['filename'] = '';
++    //$item['filename'] = $item['filename'] = '';
+ 
+     // Check if alt attribute is already set, if not use the filename as alt attribute
+     $renderitems['slides'][$delta]['alt'] = (isset($item['alt']) && !empty($item['alt'])) ? $item['alt'] : $item['filename'];
+-    dsm($item);
+-    $item['alt'] = $renderitems['slides'][$delta]['alt'];
++    //Override galleryformatter to set the alt and title based on asc_image_handling attributes.
++    $item['alt'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
++    $item['title'] = $item['filename'];
+ 
+     // If the title is empty use alt or the node title in that order.
+     if (empty($item['title'])) {
