@@ -1,0 +1,140 @@
+diff --git a/gallerystyles/greenarrows/greenarrows.css b/gallerystyles/greenarrows/greenarrows.css
+index 948e80c..ab2019c 100644
+--- a/gallerystyles/greenarrows/greenarrows.css
++++ b/gallerystyles/greenarrows/greenarrows.css
+@@ -8,16 +8,24 @@
+ .galleryformatter-greenarrows .gallery-thumbs .wrapper,
+ .galleryformatter-greenarrows .gallery-thumbs li.active a,
+ .galleryformatter-greenarrows .gallery-thumbs li a:hover,
+-.galleryformatter-greenarrows .view-full { background:url("images/sprite.png") no-repeat scroll 0 0 transparent; }
++.galleryformatter-greenarrows .view-full { background:url("images/arrows.png") no-repeat scroll 0 0 transparent; }
+ 
+ .galleryformatter-greenarrows .gallery-slides .panel-overlay {
+   position: absolute;
+-  bottom: 0.5em; left: 0;
+-  background: transparent url(images/bg-trans.png) repeat;
++  bottom: 0; left: 0;
++  background: black url(images/bg-trans.png) repeat;
+   width:100%;
+   color: white;
++  opacity: 0.8;
+ }
+-.galleryformatter-greenarrows .gallery-slides .panel-overlay .overlay-inner { padding: 10px; }
++
++.galleryformatter-greenarrows .gallery-slides .panel-overlay h4 {
++  font-family: Arial, Helvetica, 'Lucida Grande', verdana, sans-serif;
++  text-transform: uppercase;
++  font-size: 0.7em;
++  font-weight: 100;
++}
++.galleryformatter-greenarrows .gallery-slides .panel-overlay .overlay-inner { padding: 0 10px; }
+ .galleryformatter-greenarrows .gallery-thumbs .wrapper {
+   overflow: auto;
+   line-height:0;
+@@ -59,11 +67,11 @@
+   opacity: 1;
+ }
+ .galleryformatter-greenarrows .gallery-thumbs li img {
+-  filter:alpha(opacity=60);
+-  -ms-filter:”alpha(opacity=60)”;
+-  -moz-opacity:0.6;
+-  -khtml-opacity: 0.6;
+-  opacity: 0.6;
++  filter:alpha(opacity=20);
++  -ms-filter:”alpha(opacity=20)”;
++  -moz-opacity:0.2;
++  -khtml-opacity: 0.2;
++  opacity: 0.2;
+ }
+ 
+ .galleryformatter-greenarrows .gallery-thumbs .arrow {
+@@ -72,41 +80,44 @@
+   height:46px;
+   position:absolute;
+   text-indent:-9999px;
+-  width:46px;
++  width:32px;
++  opacity: 0.5;
+ }
+ 
+ .galleryformatter-greenarrows .gallery-thumbs .forward {
+   background-position: 0px 0;
+-  right: 0;
++  left: 0;
+ }
+ 
+ .galleryformatter-greenarrows .gallery-thumbs .back {
+-  background-position: -4px -102px;
+-  left: 0;
++  background-position: -32px 0;
++  right: 0;
+ }
+ 
+-.galleryformatter-greenarrows .gallery-thumbs .forward:hover { background-position: 0px -52px; }
++.galleryformatter-greenarrows .gallery-thumbs .forward:hover { opacity: 0.8; }
+ 
+-.galleryformatter-greenarrows .gallery-thumbs .back:hover { background-position: -4px -156px; }
++.galleryformatter-greenarrows .gallery-thumbs .back:hover { opacity: 0.8; }
+ 
+ .galleryformatter-greenarrows .slide-button {
+-  background: transparent url(images/next-prev.png) no-repeat top left;
+-  height: 64px;
++  background: transparent url(images/arrows.png) no-repeat top left;
++  height: 32px;
+   width: 32px;
+   top: 43%;
+   text-indent: -9999px;
+-  filter:alpha(opacity=20);
+-  -ms-filter:”alpha(opacity=20)”;
+-  -moz-opacity:0.2;
+-  -khtml-opacity: 0.2;
+-  opacity: 0.2;
++  filter:alpha(opacity=30);
++  -ms-filter:”alpha(opacity=30)”;
++  -moz-opacity:0.3;
++  -khtml-opacity: 0.3;
++  opacity: 0.3;
+ }
+ 
+ .galleryformatter-greenarrows .prev-slide {
+   background-position: top left;
++  margin-left: 1em;
+ }
+ .galleryformatter-greenarrows .next-slide {
+   background-position: top right;
++  margin-right: 1em;
+ }
+ .galleryformatter-greenarrows .slide-button:hover {
+     filter: alpha(opacity=100);
+diff --git a/gallerystyles/greenarrows/images/arrows.png b/gallerystyles/greenarrows/images/arrows.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..bd72910a896879de6716a5275cf640d040e022c7
+GIT binary patch
+literal 1142
+zcmV-+1d02JP)<h;3K|Lk000e1NJLTq002M$001Be1^@s6qMd$(00004b3#c}2nYxW
+zd<bNS00009a7bBm001rf001rf0sMzb=Kufz9CSrkbW?9;ba!ELWdK2BZ(?O2Mrm?o
+zcW-iQb09-gHF34$HUIzv@JU2LRA_<KnO~?>MI6UJd)gvJj0<s7A7YSsn2My#LczF*
+zAr@I?Sz+cw)Jy-MNC`@xv<HzCl`xVX0<VJPwTG^kFrlK7w65qyrkZq+5Q)@>Bul+*
+z4|8_iyL-=`nK`>FeqmwHoZrmncYf!04!_@=Ql(PCS4xT=U_LMxm;p>qPyGcP1HJ{m
+z)W-hly=Z_s!7up)KuIwJco?`Jm<HUGVR{KT0~`hhwXsKh9l2KgmH|*wOb1>A9t`xk
+zs)N90ZR{^GliR@m9@x@~pBVrp#nZqWz>Sgcszz}^*by?RTl{eYprm*cSXL0+s6E=)
+z_k0Yy$!`ikhu~H1)yA%EWzcPY(g1&|gK&VwN{Z*RPF@RsEd!Jkw*$L@8#?F!Km}N)
+zjs3NL(34*QO6}y=XTZuFc%Ci;gTR#>yArT!oN*t11=t7t9qe5OKLJou+zHGnu;@`>
+zIj|MKAl|E_xTks$z)yhfDQh^w&nA8~10IiDXcYKB8~cJb_BWsh{}f$P_dkT+qm4bK
+zjeQAtA6NXuXbC`~q__omAYy@GV7WH-<46bYQ&RL6;G>Q02c83dh~<}Ywe^&MiI;$F
+z+SpGbp!K>HSO{DQ<d2ay_9XDKlHyt56<|ULKLPsiueN@~-Swgu5AI#@P#`~3+SpyV
+zZ1^sOUk2{>FusU;)^|qwmnDVEfVM~*dkT16NwE}{4U_Wt30GUnEPV|u?ZCx@dkN?9
+zgQbn#4Lk{ak;hMR3;_N~f7hEX1OMh3CAiImR$2h;QBpk74zC(i@!$tbN%08qDX=Jy
+zUj|0VFG3~*?<gtyfDPK%-;28mz|X*W55AX_6t@9y0rPzM3GfXrU3@eb=uexLq8bGb
+z1oAVbq<9S2iT}lq0tXUcKk!EYYa;Nrl45Jxz{Kh-FciTbBPGRDCB;Ty4Ph_Tv%pZI
+zjXeh(ieS&iWy3QOa{-36v8N00tL^hH;<n6&wXvtm>A_xLal|4w11psj^MJLu=h;^S
+zb^kvL;Gb7g^a86X_U;&fv>DRIj^K7uV>Jut2VNw<9R?WD#@2Y+*khjj|9};^yI$nt
+zYyA2;V0{XR)kIu}<<kzY&lt<&mvEh9(c-DbuLVFGdji;0aAC-Ahqq~Ck2el_@{8^U
+zHSxz(f@ym>&@`oe8q&sY&pO!!{=P<jQz@*CUDqKe27!0;j5^F;-8k6l!^jHYRmKTY
+zgg(^9eiSmHTl~CFV|U;_O-1e4;C79+Xk(AYOzsBX_v7d+;89>E&<m6^Ot0W7te=3-
+zwXp|7J?=K&D*$zlOv81DeZXB@P0tE&9QX>@pKeUFU7g_n52T8e4q1T}8UO$Q07*qo
+IM6N<$g2x;Se*gdg
+
+literal 0
+HcmV?d00001
+
