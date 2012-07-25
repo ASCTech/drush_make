@@ -7,7 +7,7 @@ index f4947e1..59d9b53 100644
      else {
        $item['title'] = ''; // prevents php notices
 -    }
-+    } 
++    }
 +
 +    //ASC Overrides
 +    $item['title'] += $item['filename'];
