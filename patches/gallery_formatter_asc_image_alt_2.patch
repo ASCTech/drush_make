@@ -1,0 +1,53 @@
+diff --git a/galleryformatter.module b/galleryformatter.module
+index de7234d..12625d6 100644
+--- a/galleryformatter.module
++++ b/galleryformatter.module
+@@ -243,18 +243,13 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+      */
+     // Grab and sanitize image information
+     // $renderitems['slides'][$delta]['description'] = $item['description']; // so far no description in d7 image fields
+-    if (!empty($item['title'])) {
+-      // Sanitize the title
+-      if(strpos($item['title'], '<') !== FALSE) {
+-        $item['title'] = strip_tags($item['title']);
+-      }
+-    }
+-    else {
+-      $item['title'] = ''; // prevents php notices
++    if (isset($item['field_caption']['und']['0']['safe_value'])) {
++      $item['title'] = $item['field_caption']['und']['0']['safe_value'];
++    } else {
++      $item['title'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
+     }
+ 
+     //ASC Overrides
+-    $item['title'] += $item['filename'];
+ 
+     $renderitems['slides'][$delta]['title'] = $item['title'];
+     $item['filename'] = $item['filename'] = '';
+@@ -273,6 +268,11 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+     $renderitems['slides'][$delta]['alt'] = $item['alt'];
+ 
+     // If the title is empty use alt or the node title in that order.
++    if (isset($item['field_caption']['und']['0']['safe_value'])) {
++      $item['title'] = $item['field_caption']['und']['0']['safe_value'];
++    } else {
++      $item['title'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
++    }
+     if (empty($item['title'])) {
+       if (!empty($item['alt'])) {
+         $item['title'] = $item['alt'];
+diff --git a/theme/galleryformatter.tpl.php b/theme/galleryformatter.tpl.php
+index b5dbd77..10e1790 100644
+--- a/theme/galleryformatter.tpl.php
++++ b/theme/galleryformatter.tpl.php
+@@ -28,8 +28,7 @@
+           <?php if (!empty($data['title']) || !empty($data['alt'])): ?>
+             <div class="panel-overlay">
+               <div class="overlay-inner">
+-                <?php if ($data['alt']): ?><h4><?php print $data['alt']; ?></h4><?php endif; ?>
+-                <?php if ($data['title']): ?><h3><?php print $data['title']; ?></h3><?php endif; ?>
++                <h4><?php print $data['title']; ?></h4>
+               </div>
+             </div>
+           <?php endif; ?>
