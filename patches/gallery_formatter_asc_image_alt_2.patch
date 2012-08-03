@@ -1,8 +1,8 @@
 diff --git a/galleryformatter.module b/galleryformatter.module
-index de7234d..12625d6 100644
+index d222bc9..956c410 100644
 --- a/galleryformatter.module
 +++ b/galleryformatter.module
-@@ -243,18 +243,13 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+@@ -243,20 +243,15 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
       */
      // Grab and sanitize image information
      // $renderitems['slides'][$delta]['description'] = $item['description']; // so far no description in d7 image fields
@@ -23,12 +23,16 @@ index de7234d..12625d6 100644
      //ASC Overrides
 -    $item['title'] += $item['filename'];
  
-     $renderitems['slides'][$delta]['title'] = $item['title'];
+-    $renderitems['slides'][$delta]['title'] = $item['title'];
++    $renderitems['slides'][$delta]['title'] = (isset($item['field_caption']['und']['0']) ? $item['field_caption']['und']['0']['safe_value'] : '');
      $item['filename'] = $item['filename'] = '';
-@@ -273,6 +268,11 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+ 
+     // Check if alt attribute is already set and sanitize it, if not use the filename as alt attribute
+@@ -273,7 +268,11 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
      $renderitems['slides'][$delta]['alt'] = $item['alt'];
  
      // If the title is empty use alt or the node title in that order.
+-    $item['title'] = $item['field_caption']['und']['0']['safe_value'];
 +    if (isset($item['field_caption']['und']['0']['safe_value'])) {
 +      $item['title'] = $item['field_caption']['und']['0']['safe_value'];
 +    } else {
