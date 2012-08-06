@@ -24,7 +24,7 @@ index 948e80c..ab2019c 100644
 +.galleryformatter-greenarrows .gallery-slides .panel-overlay h4 {
 +  font-family: Arial, Helvetica, 'Lucida Grande', verdana, sans-serif;
 +  text-transform: uppercase;
-+  font-size: 0.7em;
++  font-size: 0.875em;
 +  font-weight: 100;
 +}
 +.galleryformatter-greenarrows .gallery-slides .panel-overlay .overlay-inner { padding: 0 10px; }
