@@ -1,0 +1,39 @@
+diff --git a/css/lightbox.css b/css/lightbox.css
+index 5243fad..fe3efef 100644
+--- a/css/lightbox.css
++++ b/css/lightbox.css
+@@ -77,7 +77,7 @@
+ #prevLink, #nextLink {
+   width: 49%;
+   height: 100%;
+-  background: transparent url(../images/blank.gif) no-repeat; /* Trick IE into showing hover */
++  background: transparent url(/blank.gif) no-repeat; /* Trick IE into showing hover */
+   display: block;
+ }
+ 
+@@ -92,21 +92,21 @@
+ }
+ 
+ #prevLink:hover, #prevLink:visited:hover, #prevLink.force_show_nav, #framePrevLink {
+-  background: url(../images/prev.gif) left 15% no-repeat;
++  background: url(/profiles/asc/themes/q7/icons/prev.png) left 50% no-repeat;
+ }
+ 
+ #nextLink:hover, #nextLink:visited:hover, #nextLink.force_show_nav, #frameNextLink {
+-  background: url(../images/next.gif) right 15% no-repeat;
++  background: url(profiles/asc/themes/q7/icons/next.png) right 50% no-repeat;
+ }
+ 
+ #prevLink:hover.force_show_nav, #prevLink:visited:hover.force_show_nav,
+ #framePrevLink:hover, #framePrevLink:visited:hover {
+-  background: url(../images/prev_hover.gif) left 15% no-repeat;
++  background: url(/profiles/asc/themes/q7/icons/prev.png) left 50% no-repeat;
+ }
+ 
+ #nextLink:hover.force_show_nav, #nextLink:visited:hover.force_show_nav,
+ #frameNextLink:hover, #frameNextLink:visited:hover {
+-  background: url(../images/next_hover.gif) right 15% no-repeat;
++  background: url(profiles/asc/themes/q7/icons/next.png) right 50% no-repeat;
+ }
+ 
+ #framePrevLink, #frameNextLink {
