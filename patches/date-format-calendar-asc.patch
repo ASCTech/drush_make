@@ -1,0 +1,12 @@
+diff --git a/date_views/theme/theme.inc b/date_views/theme/theme.inc
+index 4a7d4bc..014f427 100644
+--- a/date_views/theme/theme.inc
++++ b/date_views/theme/theme.inc
+@@ -150,6 +150,7 @@ function template_preprocess_date_views_pager(&$vars) {
+     'granularity' => $granularity,
+     'view' => $view,
+     'link' => $link,
++    'format' => 'F Y',
+   );
+   $nav_title = theme('date_nav_title', $params);
+   $vars['nav_title'] = $nav_title;
