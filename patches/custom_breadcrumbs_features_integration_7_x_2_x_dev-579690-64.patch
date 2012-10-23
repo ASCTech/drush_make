@@ -1,0 +1,1818 @@
+diff --git a/custom_breadcrumbs.features.inc b/custom_breadcrumbs.features.inc
+new file mode 100644
+index 0000000..7508d61
+--- /dev/null
++++ b/custom_breadcrumbs.features.inc
+@@ -0,0 +1,148 @@
++<?php
++
++/**
++ * Implementation of hook_features_export_options. [component_hook]
++ *
++ * This hook will alert features of which specific items of this component may
++ * be exported. For instances, in this case, we want to make available all the
++ * existing items.  If there are no items to be exported, this component will
++ * not be made available in the features export page.
++ *
++ * @return array
++ *   A keyed array of items, suitable for use with a FormAPI select or
++ *   checkboxes element.
++ */
++function custom_breadcrumbs_config_features_export_options() {
++  $options = array();
++  $result = db_query('SELECT machine_name, node_type FROM {custom_breadcrumb}', array());
++  foreach ($result as $crumb) {
++    $options[$crumb->machine_name] = 'Node Type: '. $crumb->node_type;
++  }
++  return $options;
++}
++
++/**
++ * Implementation of hook_features_export [component hook]
++ *
++ * This is a component hook, rather then a module hook, therefore this is the
++ * callback from hook_features_api which relates to the specific component we
++ * are looking to export.  When a specific instance of the component we are
++ * looking to export is selected, this will include the necessariy item, plus
++ * any dependencies into our export array.
++ *
++ * @param array $data
++ *   this is the machine name for the component in question
++ * @param array &$export
++ *   array of all components to be exported
++ * @param string $module_name
++ *   The name of the feature module to be generated.
++ * @return array
++ *   The pipe array of further processors that should be called
++ */
++function custom_breadcrumbs_config_features_export($data, &$export, $module_name) {
++  //we have module dependencies in order for this module to function properly
++  //so we'll add them here
++  $export['dependencies']['custom_breadcrumbs'] = 'custom_breadcrumbs';
++
++  // The following is the simplest implementation of a straight object export
++  // with no further export processors called.
++  foreach ($data as $component) {
++    $export['features']['custom_breadcrumbs_config'][$component] = $component;
++  }
++  return array();
++}
++
++/**
++ * Implementation of hook_features_export_render. [component hook]
++ *
++ * This hook will be invoked in order to export
++ * Component hook. The hook should be implemented using the name ot the
++ * component, not the module, eg. [component]_features_export() rather than
++ * [module]_features_export().
++ *
++ * Render one or more component objects to code.
++ *
++ * @param string $module_name
++ *   The name of the feature module to be exported.
++ * @param array $data
++ *   An array of machine name identifiers for the objects to be rendered.
++ * @param array $export
++ *   The full export array of the current feature being exported. This is only
++ *   passed when hook_features_export_render() is invoked for an actual feature
++ *   update or recreate, not during state checks or other operations.
++ * @return array
++ *   An associative array of rendered PHP code where the key is the name of the
++ *   hook that should wrap the PHP code. The hook should not include the name
++ *   of the module, e.g. the key for `hook_example` should simply be `example`.
++ */
++function custom_breadcrumbs_config_features_export_render($module_name, $data, $export = NULL) {
++  $code = array();
++  $code[] = '  $custom_breadcrumbs_configs = array();';
++  $code[] = '';
++  foreach ($data as $option) {
++    //retrieve the contest information
++    $item = _custom_breadcrumbs_config_get_data($option);
++    //add the contest code to the feature
++    if (isset($item[$option])) {
++      $code[] = '  $custom_breadcrumbs_configs[] = '. features_var_export($item, '  ') .';';
++    }
++  }
++  $code[] = '  return $custom_breadcrumbs_configs;';
++  $code = implode("\n", $code);
++  return array('custom_breadcrumbs_config_features_default_settings' => $code);
++}
++
++/*
++ * Basic function to retrieve the information to be exported.
++ */
++function _custom_breadcrumbs_config_get_data($option) {
++  $result = db_query('SELECT * FROM {custom_breadcrumb} WHERE machine_name = :machine_name', array(':machine_name' => $option));
++  $crumb = array();
++  if ($result->rowCount() > 0) {
++    $crumb = $result->fetchAssoc();
++    // Remove the auto-increment value from the breadcrumb config
++    unset($crumb['bid']);
++  }
++  return array($option => $crumb);
++}
++
++/**
++ * Implementation of hook_features_rebuild(). [component_hook]
++ */
++function custom_breadcrumbs_config_features_rebuild($module) {
++drupal_set_message('Module'. $module);
++  $items = module_invoke($module, 'custom_breadcrumbs_config_features_default_settings');
++  //loop over the items we need to recreate
++  foreach ($items as $option => $item) {
++    //basic function to take the array and store in the database
++    $saved = _custom_breadcrumbs_config_set_data($item);
++  }
++}
++
++/*
++ * Basic function to take the array and store in the database.
++ */
++function _custom_breadcrumbs_config_set_data($item) {
++  $values = array_values($item);
++  db_delete('custom_breadcrumb')
++    ->condition('machine_name', $values[0]['machine_name'])
++    ->execute();
++  $result = db_insert('custom_breadcrumb')
++    ->fields(array(
++      'name' => $values[0]['name'],
++      'machine_name' => $values[0]['machine_name'],
++      'titles' => $values[0]['titles'],
++      'paths' => $values[0]['paths'],
++      'visibility_php' => $values[0]['visibility_php'],
++      'language' => $values[0]['language'],
++      'node_type' => $values[0]['node_type']))
++    ->execute();
++  return $result;
++}
++
++/**
++ * Implementation of hook_features_revert(). [component_hook]
++ */
++function custom_breadcrumbs_config_features_revert($module) {
++  custom_breadcrumbs_config_features_rebuild($module);
++}
+diff --git a/custom_breadcrumbs.info b/custom_breadcrumbs.info
+index 983f09e..5103127 100644
+--- a/custom_breadcrumbs.info
++++ b/custom_breadcrumbs.info
+@@ -8,3 +8,4 @@ files[] = custom_breadcrumbs.admin.inc
+ files[] = custom_breadcrumbs.install
+ files[] = custom_breadcrumbs.module
+ files[] = custom_breadcrumbs_common.inc
++files[] = custom_breadcrumbs.features.inc
+diff --git a/custom_breadcrumbs.install b/custom_breadcrumbs.install
+index d0b486f..2d95071 100644
+--- a/custom_breadcrumbs.install
++++ b/custom_breadcrumbs.install
+@@ -24,16 +24,19 @@ function custom_breadcrumbs_schema() {
+         'not null' => FALSE,
+         'description' => 'An optional name for the custom breadcrumb.',
+       ),
+-      'titles' => array(
++      'machine_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+-        'default' => '',
++        'description' => 'The unique machine name for the custom breadcrumb.',
++      ),
++      'titles' => array(
++        'type' => 'text',
++        'not null' => TRUE,
+         'description' => 'A return-delimited list of titles for the breadcrumb links.',
+       ),
+       'paths' => array(
+-        'type' => 'varchar',
+-        'length' => 255,
++        'type' => 'text',
+         'not null' => FALSE,
+         'description' => 'A return-delimited list of url paths for the breadcrumb links.',
+       ),
+@@ -62,6 +65,9 @@ function custom_breadcrumbs_schema() {
+       'language' => array('language'),
+       'node_language' => array('node_type', 'language'),
+     ),
++    'unique keys' => array(
++      'machine_name'  => array('machine_name'),
++    ),
+     'primary key' => array('bid'),
+   );
+   return $schema;
+@@ -199,3 +205,22 @@ function custom_breadcrumbs_update_6203() {
+   module_enable(array('custom_breadcrumbs_identifiers'));
+   return t('Custom_breadcrumbs_identifiers was enabled for legacy reasons. Please disable it if you do not need special identifiers in your breadcrumb settings.');
+ }
++
++/**
++ * Adds unique machine name field for integration with features
++ */
++function custom_breadcrumbs_update_7000() {
++  db_change_field('custom_breadcrumb', 'titles', 'titles', array('type' => 'text', 'NOT NULL' => TRUE, 'description' => 'A return-delimited list of titles for the breadcrumb links.'));
++  db_change_field('custom_breadcrumb', 'paths', 'paths', array('type' => 'text', 'NOT NULL' => FALSE, 'description' => 'A return-delimited list of url paths for the breadcrumb links.'));
++  db_add_field('custom_breadcrumb', 'machine_name', array('type' => 'varchar', 'length' => 255, 'NOT NULL' => TRUE, 'description' => 'The unique machine name for the custom breadcrumb.'));
++  db_add_unique_key('custom_breadcrumb', 'machine_name', array('machine_name'));
++
++  $result = db_query("SELECT * FROM {custom_breadcrumb}")->execute();
++  foreach ($result as $crumb) {
++    db_update('custom_breadcrumbs')
++      ->fields(array('machine_name' => $crumb->node_type .'-'. $crumb->bid))
++      ->condition('bid', $crumb->bid)
++      ->execute();
++  }
++  return t('Removed size limit on titles and paths fields. Added unique machine name field for integration with features.');
++}
+diff --git a/custom_breadcrumbs.module b/custom_breadcrumbs.module
+index 815875a..6b3c99f 100644
+--- a/custom_breadcrumbs.module
++++ b/custom_breadcrumbs.module
+@@ -18,6 +18,7 @@ define('CUSTOM_BREADCRUMBS_SHOW_FORM_TABLE_DEFAULT', 1);
+  *     'field' a unique field of the database table used to identify the breadcrumb,
+  *     'type' a string used for indicating the breadcrumb type on the admin list.
+  *     'name_constructor' a function which generates the breadcrumb name from the breadcrumb.
++ *     'machine_name_constructor' a function which generates the machine name for use with features from the breadcrumb.
+  */
+ function custom_breadcrumbs_cb_breadcrumb_info() {
+   $breadcrumb_type_info = array();
+@@ -26,6 +27,7 @@ function custom_breadcrumbs_cb_breadcrumb_info() {
+     'field' => 'node_type',
+     'type' => 'node',
+     'name_constructor' => '_custom_breadcrumbs_breadcrumb_name',
++    'machine_name_constructor' => '_custom_breadcrumbs_breadcrumb_machine_name',
+   );
+   return $breadcrumb_type_info;
+ }
+@@ -40,6 +42,15 @@ function _custom_breadcrumbs_breadcrumb_name($breadcrumb) {
+ }
+ 
+ /**
++ * Constructs a unique default machine name for features integration.
++ */
++function _custom_breadcrumbs_breadcrumb_machine_name($breadcrumb) {
++  if (isset($breadcrumb->node_type)) {
++    return $breadcrumb->node_type .'-'. $breadcrumb->bid;
++  }
++}
++
++/**
+  * Implements hook_theme().
+  */
+ function custom_breadcrumbs_theme() {
+@@ -514,12 +525,18 @@ function _custom_breadcrumbs_save_breadcrumb($module, $key, $breadcrumb) {
+     if ((!isset($breadcrumb->name) || $breadcrumb->name == '') && isset($info[$key]['name_constructor']) && function_exists($info[$key]['name_constructor'])) {
+       $breadcrumb->name = $info[$key]['name_constructor']($breadcrumb);
+     }
+-    if (isset($breadcrumb->bid)) {
+-      drupal_write_record($info[$key]['table'], $breadcrumb, 'bid');
+-    }
+-    else {
++    if (!isset($breadcrumb->bid)) {
++      $breadcrumb->machine_name = $breadcrumb->node_type .'-'. rand();
+       drupal_write_record($info[$key]['table'], $breadcrumb);
+     }
++    // drupal_write_record passes $breadcrumb by reference,
++    // so we're good and $breadcrumb->bid is set now
++    // and the machine_name will be set by the constructor.
++    $machine_name = db_query('SELECT machine_name FROM {'. $info[$key]['table'] .'} WHERE bid = :bid', array(':bid' => $breadcrumb->bid))->fetchField();
++    if ((!isset($machine_name) || !$machine_name || $machine_name == '') && isset($info[$key]['machine_name_constructor']) && function_exists($info[$key]['machine_name_constructor'])) {
++      $breadcrumb->machine_name = $info[$key]['machine_name_constructor']($breadcrumb);
++    }
++    drupal_write_record($info[$key]['table'], $breadcrumb, 'bid');
+   }
+ }
+ 
+@@ -1227,3 +1244,20 @@ function _custom_breadcrumbs_identifiers_option($part = 0, $bid = NULL) {
+ 
+   return $options;
+ }
++
++/**
++ * Implementation of hook_features_api
++ *
++ * Here we define the components that we want to make exportable.  For this
++ * particular module, we want to make the configurations exportable.
++ */
++function custom_breadcrumbs_features_api() {
++  return array(
++    'custom_breadcrumbs_config' => array(
++      'name' => 'Custom Breadcrumbs Node',
++      'file' => drupal_get_path('module', 'custom_breadcrumbs') .'/custom_breadcrumbs.features.inc',
++      'default_hook' => 'custom_breadcrumbs_config_features_default_settings',
++      'feature_source' => TRUE,
++    ),
++  );
++}
+diff --git a/custom_breadcrumbs_panels/custom_breadcrumbs_panels.features.inc b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.features.inc
+new file mode 100644
+index 0000000..eb6bdfb
+--- /dev/null
++++ b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.features.inc
+@@ -0,0 +1,147 @@
++<?php
++
++/**
++ * Implementation of hook_features_export_options. [component_hook]
++ *
++ * This hook will alert features of which specific items of this component may
++ * be exported. For instances, in this case, we want to make available all the
++ * existing items.  If there are no items to be exported, this component will
++ * not be made available in the features export page.
++ *
++ * @return array
++ *   A keyed array of items, suitable for use with a FormAPI select or
++ *   checkboxes element.
++ */
++function custom_breadcrumbs_panels_config_features_export_options() {
++  $options = array();
++  $result = db_query('SELECT machine_name, panel_id FROM {custom_breadcrumbs_panels}', array());
++  foreach ($result as $crumb) {
++    $options[$crumb->machine_name] = 'Panel ID: '. $crumb->panel_id;
++  }
++  return $options;
++}
++
++/**
++ * Implementation of hook_features_export [component hook]
++ *
++ * This is a component hook, rather then a module hook, therefore this is the
++ * callback from hook_features_api which relates to the specific component we
++ * are looking to export.  When a specific instance of the component we are
++ * looking to export is selected, this will include the necessariy item, plus
++ * any dependencies into our export array.
++ *
++ * @param array $data
++ *   this is the machine name for the component in question
++ * @param array &$export
++ *   array of all components to be exported
++ * @param string $module_name
++ *   The name of the feature module to be generated.
++ * @return array
++ *   The pipe array of further processors that should be called
++ */
++function custom_breadcrumbs_panels_config_features_export($data, &$export, $module_name) {
++  //we have module dependencies in order for this module to function properly
++  //so we'll add them here
++  $export['dependencies']['custom_breadcrumbs_panels'] = 'custom_breadcrumbs_panels';
++
++  // The following is the simplest implementation of a straight object export
++  // with no further export processors called.
++  foreach ($data as $component) {
++    $export['features']['custom_breadcrumbs_panels_config'][$component] = $component;
++  }
++  return array();
++}
++
++/**
++ * Implementation of hook_features_export_render. [component hook]
++ *
++ * This hook will be invoked in order to export
++ * Component hook. The hook should be implemented using the name ot the
++ * component, not the module, eg. [component]_features_export() rather than
++ * [module]_features_export().
++ *
++ * Render one or more component objects to code.
++ *
++ * @param string $module_name
++ *   The name of the feature module to be exported.
++ * @param array $data
++ *   An array of machine name identifiers for the objects to be rendered.
++ * @param array $export
++ *   The full export array of the current feature being exported. This is only
++ *   passed when hook_features_export_render() is invoked for an actual feature
++ *   update or recreate, not during state checks or other operations.
++ * @return array
++ *   An associative array of rendered PHP code where the key is the name of the
++ *   hook that should wrap the PHP code. The hook should not include the name
++ *   of the module, e.g. the key for `hook_example` should simply be `example`.
++ */
++function custom_breadcrumbs_panels_config_features_export_render($module_name, $data, $export = NULL) {
++  $code = array();
++  $code[] = '  $custom_breadcrumbs_panels_configs = array();';
++  $code[] = '';
++  foreach ($data as $option) {
++    //retrieve the contest information
++    $item = _custom_breadcrumbs_panels_config_get_data($option);
++    //add the contest code to the feature
++    if (isset($item[$option])) {
++      $code[] = '  $custom_breadcrumbs_panels_configs[] = '. features_var_export($item, '  ') .';';
++    }
++  }
++  $code[] = '  return $custom_breadcrumbs_panels_configs;';
++  $code = implode("\n", $code);
++  return array('custom_breadcrumbs_panels_config_features_default_settings' => $code);
++}
++
++/*
++ * Basic function to retrieve the information to be exported.
++ */
++function _custom_breadcrumbs_panels_config_get_data($option) {
++  $result = db_query('SELECT * FROM {custom_breadcrumbs_panels} WHERE machine_name = :machine_name', array(':machine_name' => $option));
++  $crumb = array();
++  if ($result->rowCount() > 0) {
++    $crumb = $result->fetchAssoc();
++    // Remove the auto-increment value from the breadcrumb config
++    unset($crumb['bid']);
++  }
++  return array($option => $crumb);
++}
++
++/**
++ * Implementation of hook_features_rebuild(). [component_hook]
++ */
++function custom_breadcrumbs_panels_config_features_rebuild($module) {
++  $items = module_invoke($module, 'custom_breadcrumbs_panels_config_features_default_settings');
++  //loop over the items we need to recreate
++  foreach ($items as $option => $item) {
++    //basic function to take the array and store in the database
++    $saved = _custom_breadcrumbs_panels_config_set_data($item);
++  }
++}
++
++/*
++ * Basic function to take the array and store in the database.
++ */
++function _custom_breadcrumbs_panels_config_set_data($item) {
++  $values = array_values($item);
++  db_delete('custom_breadcrumbs_panels')
++    ->condition('machine_name', $values[0]['machine_name'])
++    ->execute();
++  $result = db_insert('custom_breadcrumbs_panels')
++    ->fields(array(
++      'name' => $values[0]['name'],
++      'machine_name' => $values[0]['machine_name'],
++      'titles' => $values[0]['titles'],
++      'paths' => $values[0]['paths'],
++      'visibility_php' => $values[0]['visibility_php'],
++      'language' => $values[0]['language'],
++      'panel_id' => $values[0]['panel_id']))
++    ->execute();
++  return $result;
++}
++
++/**
++ * Implementation of hook_features_revert(). [component_hook]
++ */
++function custom_breadcrumbs_panels_config_features_revert($module) {
++  custom_breadcrumbs_panels_config_features_rebuild($module);
++}
+diff --git a/custom_breadcrumbs_panels/custom_breadcrumbs_panels.info b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.info
+index 6aa5d3f..4ceb150 100644
+--- a/custom_breadcrumbs_panels/custom_breadcrumbs_panels.info
++++ b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.info
+@@ -10,3 +10,4 @@ configure = admin/config/user-interface/custom-breadcrumbs
+ 
+ files[] = custom_breadcrumbs_panels.install
+ files[] = custom_breadcrumbs_panels.module
++files[] = custom_breadcrumbs_panels.features.inc
+diff --git a/custom_breadcrumbs_panels/custom_breadcrumbs_panels.install b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.install
+index 845aebe..7e5fb31 100644
+--- a/custom_breadcrumbs_panels/custom_breadcrumbs_panels.install
++++ b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.install
+@@ -23,18 +23,21 @@ function custom_breadcrumbs_panels_schema() {
+         'not null' => FALSE,
+         'description' => 'An optional name for the custom breadcrumb.',
+       ),
+-      'titles' => array(
++      'machine_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+-        'default' => '',
+-        'description' => 'A return-delimited list of titles for the breadcrumb links.',
++        'description' => 'The unique machine name for the custom breadcrumb.',
++      ),
++      'titles' => array(
++        'type' => 'text',
++        'not null' => TRUE,
++        'description' => "A return-delimited list of titles for the breadcrumb links.",
+       ),
+       'paths' => array(
+-        'type' => 'varchar',
+-        'length' => 255,
++        'type' => 'text',
+         'not null' => FALSE,
+-        'description' => 'A return-delimited list of url paths for the breadcrumb links.',
++        'description' => "A return-delimited list of url paths for the breadcrumb links.",
+       ),
+       'visibility_php' => array(
+         'type' => 'text',
+@@ -60,6 +63,9 @@ function custom_breadcrumbs_panels_schema() {
+       'language' => array('language'),
+       'panelid_language' => array('panel_id', 'language'),
+     ),
++    'unique keys' => array(
++      'machine_name'  => array('machine_name'),
++    ),
+     'primary key' => array('bid'),
+   );
+   return $schema;
+@@ -74,6 +80,25 @@ function custom_breadcrumbs_panels_update_6200() {
+ }
+ 
+ /**
++ * Adds unique machine name field for integration with features
++ */
++function custom_breadcrumbs_panels_update_7000() {
++  db_change_field('custom_breadcrumbs_panels', 'titles', 'titles', array('type' => 'text', 'NOT NULL' => TRUE, 'description' => 'A return-delimited list of titles for the breadcrumb links.'));
++  db_change_field('custom_breadcrumbs_panels', 'paths', 'paths', array('type' => 'text', 'NOT NULL' => FALSE, 'description' => 'A return-delimited list of url paths for the breadcrumb links.'));
++  db_add_field('custom_breadcrumbs_panels', 'machine_name', array('type' => 'varchar', 'length' => 255, 'NOT NULL' => TRUE, 'description' => 'The unique machine name for the custom breadcrumb.'));
++  db_add_unique_key('custom_breadcrumbs_panels', 'machine_name', array('machine_name'));
++
++  $result = db_query("SELECT * FROM {custom_breadcrumbs_panels}");
++  foreach ($result as $crumb) {
++    db_update('custom_breadcrumbs_panels')
++      ->fields(array('machine_name' => $crumb->panel_id .'-'. $crumb->bid))
++      ->condition('bid', $crumb->bid)
++      ->execute();
++  }
++  return t('Removed size limit on titles and paths fields. Added unique machine name field for integration with features.');
++}
++
++/**
+  * Implements hook_uninstall().
+  */
+ function custom_breadcrumbs_panels_uninstall() {
+diff --git a/custom_breadcrumbs_panels/custom_breadcrumbs_panels.module b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.module
+index d2d767a..f62444c 100644
+--- a/custom_breadcrumbs_panels/custom_breadcrumbs_panels.module
++++ b/custom_breadcrumbs_panels/custom_breadcrumbs_panels.module
+@@ -23,6 +23,7 @@ function custom_breadcrumbs_panels_cb_breadcrumb_info() {
+     'field' => 'panel_id',
+     'type' => 'panels',
+     'name_constructor' => '_custom_breadcrumbs_panels_breadcrumb_name',
++    'machine_name_constructor' => '_custom_breadcrumbs_panels_breadcrumb_machine_name',
+   );
+   return $breadcrumb_type_info;
+ }
+@@ -43,6 +44,21 @@ function _custom_breadcrumbs_panels_breadcrumb_name($breadcrumb) {
+ }
+ 
+ /**
++ * Constructs a default name for features integration.
++ *
++ * @param $breadcrumb
++ *   The breadcrumb object.
++ *
++ * @return
++ *   A text string that will be used for features integration.
++ */
++function _custom_breadcrumbs_panels_breadcrumb_machine_name($breadcrumb) {
++  if (isset($breadcrumb->panel_id)) {
++    return $breadcrumb->panel_id .'-'. $breadcrumb->bid;
++  }
++}
++
++/**
+  * Implements hook_menu().
+  */
+ function custom_breadcrumbs_panels_menu() {
+@@ -260,3 +276,20 @@ function custom_breadcrumbs_panels_form($form, &$form_state, $type) {
+ 
+   return $form;
+ }
++
++/**
++ * Implementation of hook_features_api
++ *
++ * Here we define the components that we want to make exportable.  For this
++ * particular module, we want to make the configurations exportable.
++ */
++function custom_breadcrumbs_panels_features_api() {
++  return array(
++    'custom_breadcrumbs_panels_config' => array(
++      'name' => 'Custom Breadcrumbs Panels',
++      'file' => drupal_get_path('module', 'custom_breadcrumbs_panels') .'/custom_breadcrumbs_panels.features.inc',
++      'default_hook' => 'custom_breadcrumbs_panels_config_features_default_settings',
++      'feature_source' => TRUE,
++    ),
++  );
++}
+diff --git a/custom_breadcrumbs_paths/custom_breadcrumbs_paths.features.inc b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.features.inc
+new file mode 100644
+index 0000000..ce5fa82
+--- /dev/null
++++ b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.features.inc
+@@ -0,0 +1,147 @@
++<?php
++
++/**
++ * Implementation of hook_features_export_options. [component_hook]
++ *
++ * This hook will alert features of which specific items of this component may
++ * be exported. For instances, in this case, we want to make available all the
++ * existing items.  If there are no items to be exported, this component will
++ * not be made available in the features export page.
++ *
++ * @return array
++ *   A keyed array of items, suitable for use with a FormAPI select or
++ *   checkboxes element.
++ */
++function custom_breadcrumbs_paths_config_features_export_options() {
++  $options = array();
++  $result = db_query('SELECT machine_name, specific_path FROM {custom_breadcrumbs_paths}', array());
++  foreach ($result as $crumb) {
++    $options[$crumb->machine_name] = 'Specific path: '. $crumb->specific_path;
++  }
++  return $options;
++}
++
++/**
++ * Implementation of hook_features_export [component hook]
++ *
++ * This is a component hook, rather then a module hook, therefore this is the
++ * callback from hook_features_api which relates to the specific component we
++ * are looking to export.  When a specific instance of the component we are
++ * looking to export is selected, this will include the necessariy item, plus
++ * any dependencies into our export array.
++ *
++ * @param array $data
++ *   this is the machine name for the component in question
++ * @param array &$export
++ *   array of all components to be exported
++ * @param string $module_name
++ *   The name of the feature module to be generated.
++ * @return array
++ *   The pipe array of further processors that should be called
++ */
++function custom_breadcrumbs_paths_config_features_export($data, &$export, $module_name) {
++  //we have module dependencies in order for this module to function properly
++  //so we'll add them here
++  $export['dependencies']['custom_breadcrumbs_paths'] = 'custom_breadcrumbs_paths';
++
++  // The following is the simplest implementation of a straight object export
++  // with no further export processors called.
++  foreach ($data as $component) {
++    $export['features']['custom_breadcrumbs_paths_config'][$component] = $component;
++  }
++  return array();
++}
++
++/**
++ * Implementation of hook_features_export_render. [component hook]
++ *
++ * This hook will be invoked in order to export
++ * Component hook. The hook should be implemented using the name ot the
++ * component, not the module, eg. [component]_features_export() rather than
++ * [module]_features_export().
++ *
++ * Render one or more component objects to code.
++ *
++ * @param string $module_name
++ *   The name of the feature module to be exported.
++ * @param array $data
++ *   An array of machine name identifiers for the objects to be rendered.
++ * @param array $export
++ *   The full export array of the current feature being exported. This is only
++ *   passed when hook_features_export_render() is invoked for an actual feature
++ *   update or recreate, not during state checks or other operations.
++ * @return array
++ *   An associative array of rendered PHP code where the key is the name of the
++ *   hook that should wrap the PHP code. The hook should not include the name
++ *   of the module, e.g. the key for `hook_example` should simply be `example`.
++ */
++function custom_breadcrumbs_paths_config_features_export_render($module_name, $data, $export = NULL) {
++  $code = array();
++  $code[] = '  $custom_breadcrumbs_paths_configs = array();';
++  $code[] = '';
++  foreach ($data as $option) {
++    //retrieve the contest information
++    $item = _custom_breadcrumbs_paths_config_get_data($option);
++    //add the contest code to the feature
++    if (isset($item[$option])) {
++      $code[] = '  $custom_breadcrumbs_paths_configs[] = '. features_var_export($item, '  ') .';';
++    }
++  }
++  $code[] = '  return $custom_breadcrumbs_paths_configs;';
++  $code = implode("\n", $code);
++  return array('custom_breadcrumbs_paths_config_features_default_settings' => $code);
++}
++
++/*
++ * Basic function to retrieve the information to be exported.
++ */
++function _custom_breadcrumbs_paths_config_get_data($option) {
++  $result = db_query('SELECT * FROM {custom_breadcrumbs_paths} WHERE machine_name = :machine_name', array(':machine_name' => $option));
++  $crumb = array();
++  if ($result->rowCount() > 0) {
++    $crumb = $result->fetchAssoc();
++    // Remove the auto-increment value from the breadcrumb config
++    unset($crumb['bid']);
++  }
++  return array($option => $crumb);
++}
++
++/**
++ * Implementation of hook_features_rebuild(). [component_hook]
++ */
++function custom_breadcrumbs_paths_config_features_rebuild($module) {
++  $items = module_invoke($module, 'custom_breadcrumbs_paths_config_features_default_settings');
++  //loop over the items we need to recreate
++  foreach ($items as $option => $item) {
++    //basic function to take the array and store in the database
++    $saved = _custom_breadcrumbs_paths_config_set_data($item);
++  }
++}
++
++/*
++ * Basic function to take the array and store in the database.
++ */
++function _custom_breadcrumbs_paths_config_set_data($item) {
++  $values = array_values($item);
++  db_delete('custom_breadcrumbs_paths')
++    ->condition('machine_name', $values[0]['machine_name'])
++    ->execute();
++  $result = db_insert('custom_breadcrumbs_paths')
++    ->fields(array(
++      'name' => $values[0]['name'],
++      'machine_name' => $values[0]['machine_name'],
++      'titles' => $values[0]['titles'],
++      'paths' => $values[0]['paths'],
++      'visibility_php' => $values[0]['visibility_php'],
++      'language' => $values[0]['language'],
++      'specific_path' => $values[0]['specific_path']))
++    ->execute();
++  return $result;
++}
++
++/**
++ * Implementation of hook_features_revert(). [component_hook]
++ */
++function custom_breadcrumbs_paths_config_features_revert($module) {
++  custom_breadcrumbs_paths_config_features_rebuild($module);
++}
+diff --git a/custom_breadcrumbs_paths/custom_breadcrumbs_paths.info b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.info
+index eb3d4a3..51e7822 100644
+--- a/custom_breadcrumbs_paths/custom_breadcrumbs_paths.info
++++ b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.info
+@@ -10,3 +10,4 @@ configure = admin/config/user-interface/custom-breadcrumbs
+ 
+ files[] = custom_breadcrumbs_paths.install
+ files[] = custom_breadcrumbs_paths.module
++files[] = custom_breadcrumbs_paths.features.inc
+diff --git a/custom_breadcrumbs_paths/custom_breadcrumbs_paths.install b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.install
+index 17300c7..4fd176e 100644
+--- a/custom_breadcrumbs_paths/custom_breadcrumbs_paths.install
++++ b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.install
+@@ -60,18 +60,21 @@ function custom_breadcrumbs_paths_schema() {
+         'not null' => FALSE,
+         'description' => 'An optional name for the custom breadcrumb.',
+       ),
+-      'titles' => array(
++      'machine_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+-        'default' => '',
+-        'description' => 'A return-delimited list of titles for the breadcrumb links.',
++        'description' => 'The unique machine name for the custom breadcrumb.',
++      ),
++      'titles' => array(
++        'type' => 'text',
++        'not null' => TRUE,
++        'description' => "A return-delimited list of titles for the breadcrumb links.",
+       ),
+       'paths' => array(
+-        'type' => 'varchar',
+-        'length' => 255,
++        'type' => 'text',
+         'not null' => FALSE,
+-        'description' => 'A return-delimited list of url paths for the breadcrumb links.',
++        'description' => "A return-delimited list of url paths for the breadcrumb links.",
+       ),
+       'visibility_php' => array(
+         'type' => 'text',
+@@ -97,6 +100,9 @@ function custom_breadcrumbs_paths_schema() {
+       'language' => array('language'),
+       'path_language' => array('specific_path', 'language'),
+     ),
++    'unique keys' => array(
++      'machine_name'  => array('machine_name'),
++    ),
+     'primary key' => array('bid'),
+   );
+   return $schema;
+@@ -128,6 +134,25 @@ function custom_breadcrumbs_paths_update_6200() {
+ }
+ 
+ /**
++ * Adds unique machine name field for integration with features
++ */
++function custom_breadcrumbs_paths_update_7000() {
++  db_change_field('custom_breadcrumbs_paths', 'titles', 'titles', array('type' => 'text', 'NOT NULL' => TRUE, 'description' => 'A return-delimited list of titles for the breadcrumb links.'));
++  db_change_field('custom_breadcrumbs_paths', 'paths', 'paths', array('type' => 'text', 'NOT NULL' => FALSE, 'description' => 'A return-delimited list of url paths for the breadcrumb links.'));
++  db_add_field('custom_breadcrumbs_paths', 'machine_name', array('type' => 'varchar', 'length' => 255, 'NOT NULL' => TRUE, 'description' => 'The unique machine name for the custom breadcrumb.'));
++  db_add_unique_key('custom_breadcrumbs_paths', 'machine_name', array('machine_name'));
++
++  $result = db_query("SELECT * FROM {custom_breadcrumbs_paths}");
++  foreach ($result as $crumb) {
++    db_update('custom_breadcrumbs_paths')
++      ->fields(array('machine_name' => str_replace('*', 'all', $crumb->specific_path) . '-' . $crumb->bid))
++      ->condition('bid', $crumb->bid)
++      ->execute();
++  }
++  return t('Removed size limit on titles and paths fields. Added unique machine name field for integration with features.');
++}
++
++/**
+  * Implements hook_uninstall().
+  */
+ function custom_breadcrumbs_paths_uninstall() {
+diff --git a/custom_breadcrumbs_paths/custom_breadcrumbs_paths.module b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.module
+index 3652a79..9e23782 100644
+--- a/custom_breadcrumbs_paths/custom_breadcrumbs_paths.module
++++ b/custom_breadcrumbs_paths/custom_breadcrumbs_paths.module
+@@ -23,6 +23,7 @@ function custom_breadcrumbs_paths_cb_breadcrumb_info() {
+     'field' => 'specific_path',
+     'type' => 'path',
+     'name_constructor' => '_custom_breadcrumbs_paths_breadcrumb_name',
++    'machine_name_constructor' => '_custom_breadcrumbs_paths_breadcrumb_machine_name',
+   );
+   return $breadcrumb_type_info;
+ }
+@@ -43,6 +44,21 @@ function _custom_breadcrumbs_paths_breadcrumb_name($breadcrumb) {
+ }
+ 
+ /**
++ * Constructs a default name for features integration.
++ *
++ * @param $breadcrumb
++ *   The breadcrumb object.
++ *
++ * @return
++ *   A text string that will be used for features integration.
++ */
++function _custom_breadcrumbs_paths_breadcrumb_machine_name($breadcrumb) {
++  if (isset($breadcrumb->specific_path)) {
++    return str_replace('*', 'all', $breadcrumb->specific_path) .'-'. $breadcrumb->bid;
++  }
++}
++
++/**
+  * Implements hook_menu().
+  */
+ function custom_breadcrumbs_paths_menu() {
+@@ -310,3 +326,20 @@ function custom_breadcrumbs_paths_form_custom_breadcrumbs_admin_settings_alter(&
+     '#weight' => -20,
+   );
+ }
++
++/**
++ * Implementation of hook_features_api
++ *
++ * Here we define the components that we want to make exportable.  For this
++ * particular module, we want to make the configurations exportable.
++ */
++function custom_breadcrumbs_paths_features_api() {
++  return array(
++    'custom_breadcrumbs_paths_config' => array(
++      'name' => 'Custom Breadcrumbs Paths',
++      'file' => drupal_get_path('module', 'custom_breadcrumbs_paths') .'/custom_breadcrumbs_paths.features.inc',
++      'default_hook' => 'custom_breadcrumbs_paths_config_features_default_settings',
++      'feature_source' => TRUE,
++    ),
++  );
++}
+diff --git a/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.features.inc b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.features.inc
+new file mode 100644
+index 0000000..a06ca66
+--- /dev/null
++++ b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.features.inc
+@@ -0,0 +1,176 @@
++<?php
++
++/**
++ * Implementation of hook_features_export_options. [component_hook]
++ *
++ * This hook will alert features of which specific items of this component may
++ * be exported. For instances, in this case, we want to make available all the
++ * existing items.  If there are no items to be exported, this component will
++ * not be made available in the features export page.
++ *
++ * @return array
++ *   A keyed array of items, suitable for use with a FormAPI select or
++ *   checkboxes element.
++ */
++function custom_breadcrumbs_taxonomy_config_features_export_options() {
++  $options = array();
++  $result = db_query('SELECT machine_name, tid FROM {custom_breadcrumbs_taxonomy_term}', array());
++  foreach ($result as $crumb) {
++    $options[$crumb->machine_name] = 'Term ID: '. $crumb->tid;
++  }
++  $result = db_query('SELECT machine_name, vid FROM {custom_breadcrumbs_taxonomy_vocabulary}', array());
++  foreach ($result as $crumb) {
++    $options[$crumb->machine_name] = 'Vocabulary ID: '. $crumb->vid;
++  }
++  return $options;
++}
++
++/**
++ * Implementation of hook_features_export [component hook]
++ *
++ * This is a component hook, rather then a module hook, therefore this is the
++ * callback from hook_features_api which relates to the specific component we
++ * are looking to export.  When a specific instance of the component we are
++ * looking to export is selected, this will include the necessariy item, plus
++ * any dependencies into our export array.
++ *
++ * @param array $data
++ *   this is the machine name for the component in question
++ * @param array &$export
++ *   array of all components to be exported
++ * @param string $module_name
++ *   The name of the feature module to be generated.
++ * @return array
++ *   The pipe array of further processors that should be called
++ */
++function custom_breadcrumbs_taxonomy_config_features_export($data, &$export, $module_name) {
++  //we have module dependencies in order for this module to function properly
++  //so we'll add them here
++  $export['dependencies']['custom_breadcrumbs_taxonomy'] = 'custom_breadcrumbs_taxonomy';
++
++  // The following is the simplest implementation of a straight object export
++  // with no further export processors called.
++  foreach ($data as $component) {
++    $export['features']['custom_breadcrumbs_taxonomy_config'][$component] = $component;
++  }
++  return array();
++}
++
++/**
++ * Implementation of hook_features_export_render. [component hook]
++ *
++ * This hook will be invoked in order to export
++ * Component hook. The hook should be implemented using the name ot the
++ * component, not the module, eg. [component]_features_export() rather than
++ * [module]_features_export().
++ *
++ * Render one or more component objects to code.
++ *
++ * @param string $module_name
++ *   The name of the feature module to be exported.
++ * @param array $data
++ *   An array of machine name identifiers for the objects to be rendered.
++ * @param array $export
++ *   The full export array of the current feature being exported. This is only
++ *   passed when hook_features_export_render() is invoked for an actual feature
++ *   update or recreate, not during state checks or other operations.
++ * @return array
++ *   An associative array of rendered PHP code where the key is the name of the
++ *   hook that should wrap the PHP code. The hook should not include the name
++ *   of the module, e.g. the key for `hook_example` should simply be `example`.
++ */
++function custom_breadcrumbs_taxonomy_config_features_export_render($module_name, $data, $export = NULL) {
++  $code = array();
++  $code[] = '  $custom_breadcrumbs_taxonomy_configs = array();';
++  $code[] = '';
++  foreach ($data as $option) {
++    //retrieve the contest information
++    $item = _custom_breadcrumbs_taxonomy_config_get_data($option);
++    //add the contest code to the feature
++    if (isset($item[$option])) {
++      $code[] = '  $custom_breadcrumbs_taxonomy_configs[] = '. features_var_export($item, '  ') .';';
++     }
++  }
++  $code[] = '  return $custom_breadcrumbs_taxonomy_configs;';
++  $code = implode("\n", $code);
++  return array('custom_breadcrumbs_taxonomy_config_features_default_settings' => $code);
++}
++
++/*
++ * Basic function to retrieve the information to be exported.
++ */
++function _custom_breadcrumbs_taxonomy_config_get_data($option) {
++  $result = db_query('SELECT * FROM {custom_breadcrumbs_taxonomy_term} WHERE machine_name = :machine_name', array(':machine_name' => $option));
++  $crumb = array();
++  if ($result->rowCount() == 0) {
++    $result = db_query('SELECT * FROM {custom_breadcrumbs_taxonomy_vocabulary} WHERE machine_name = :machine_name', array(':machine_name' => $option));
++    if ($result->rowCount() > 0) {
++      $crumb = $result->fetchAssoc();
++      unset($crumb['bid']);
++    }
++  }
++  else {
++    $crumb = $result->fetchAssoc();
++    // Remove the auto-increment value from the breadcrumb config
++    unset($crumb['bid']);
++  }
++  return array($option => $crumb);
++}
++
++/**
++ * Implementation of hook_features_rebuild(). [component_hook]
++ */
++function custom_breadcrumbs_taxonomy_config_features_rebuild($module) {
++  $items = module_invoke($module, 'custom_breadcrumbs_taxonomy_config_features_default_settings');
++  //loop over the items we need to recreate
++  foreach ($items as $option => $item) {
++    //basic function to take the array and store in the database
++    $saved = _custom_breadcrumbs_taxonomy_config_set_data($item);
++  }
++}
++
++/*
++ * Basic function to take the array and store in the database.
++ */
++function _custom_breadcrumbs_taxonomy_config_set_data($item) {
++  $values = array_values($item);
++  if (isset($values[0]['tid'])) {
++    db_delete('custom_breadcrumbs_taxonomy_term')
++      ->condition('machine_name', $values[0]['machine_name'])
++      ->execute();
++    $result = db_insert('custom_breadcrumbs_taxonomy_term')
++      ->fields(array(
++        'name' => $values[0]['name'],
++        'machine_name' => $values[0]['machine_name'],
++        'titles' => $values[0]['titles'],
++        'paths' => $values[0]['paths'],
++        'visibility_php' => $values[0]['visibility_php'],
++        'language' => $values[0]['language'],
++        'tid' => $values[0]['tid']))
++      ->execute();
++    return $result;
++  }
++  if (isset($values[0]['vid'])) {
++    db_delete('custom_breadcrumbs_taxonomy_vocabulary')
++      ->condition('machine_name', $values[0]['machine_name'])
++      ->execute();
++    $result = db_insert('custom_breadcrumbs_taxonomy_vocabulary')
++      ->fields(array(
++        'name' => $values[0]['name'],
++        'machine_name' => $values[0]['machine_name'],
++        'titles' => $values[0]['titles'],
++        'paths' => $values[0]['paths'],
++        'visibility_php' => $values[0]['visibility_php'],
++        'language' => $values[0]['language'],
++        'vid' => $values[0]['vid']))
++      ->execute();
++    return $result;
++  }
++}
++
++/**
++ * Implementation of hook_features_revert(). [component_hook]
++ */
++function custom_breadcrumbs_taxonomy_config_features_revert($module) {
++  custom_breadcrumbs_taxonomy_config_features_rebuild($module);
++}
+diff --git a/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.info b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.info
+index 093d37f..1b36929 100644
+--- a/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.info
++++ b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.info
+@@ -9,3 +9,4 @@ files[] = custom_breadcrumbs_taxonomy.admin.inc
+ files[] = custom_breadcrumbs_taxonomy.inc
+ files[] = custom_breadcrumbs_taxonomy.install
+ files[] = custom_breadcrumbs_taxonomy.module
++files[] = custom_breadcrumbs_taxonomy.features.inc
+diff --git a/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.install b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.install
+index a1f5b55..245c4ef 100644
+--- a/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.install
++++ b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.install
+@@ -96,18 +96,21 @@ function custom_breadcrumbs_taxonomy_schema() {
+         'not null' => FALSE,
+         'description' => 'An optional name for the custom breadcrumb.',
+       ),
+-      'titles' => array(
++      'machine_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+-        'default' => '',
+-        'description' => 'A title for the breadcrumb link.',
++        'description' => 'The unique machine name for the custom breadcrumb.',
++      ),
++      'titles' => array(
++        'type' => 'text',
++        'not null' => TRUE,
++        'description' => "A return-delimited list of titles for the breadcrumb links.",
+       ),
+       'paths' => array(
+-        'type' => 'varchar',
+-        'length' => 255,
++        'type' => 'text',
+         'not null' => FALSE,
+-        'description' => 'A path for the breadcrumb link.',
++        'description' => "A return-delimited list of url paths for the breadcrumb links.",
+       ),
+       'tid' => array(
+         'type' => 'int',
+@@ -133,6 +136,9 @@ function custom_breadcrumbs_taxonomy_schema() {
+       'language' => array('language'),
+       'tid_language' => array('tid', 'language'),
+     ),
++    'unique keys' => array(
++      'machine_name'  => array('machine_name'),
++    ),
+     'primary key' => array('bid'),
+   );
+ 
+@@ -151,18 +157,21 @@ function custom_breadcrumbs_taxonomy_schema() {
+         'not null' => FALSE,
+         'description' => 'An optional name for the custom breadcrumb.',
+       ),
+-      'titles' => array(
++      'machine_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+-        'default' => '',
+-        'description' => 'A titles for the breadcrumb link.',
++        'description' => 'The unique machine name for the custom breadcrumb.',
++      ),
++      'titles' => array(
++        'type' => 'text',
++        'not null' => TRUE,
++        'description' => "A return-delimited list of titles for the breadcrumb links.",
+       ),
+       'paths' => array(
+-        'type' => 'varchar',
+-        'length' => 255,
++        'type' => 'text',
+         'not null' => FALSE,
+-        'description' => 'A paths for the breadcrumb link.',
++        'description' => "A return-delimited list of url paths for the breadcrumb links.",
+       ),
+       'vid' => array(
+         'type' => 'int',
+@@ -188,6 +197,9 @@ function custom_breadcrumbs_taxonomy_schema() {
+       'language' => array('language'),
+       'vid_language' => array('vid', 'language'),
+     ),
++    'unique keys' => array(
++      'machine_name'  => array('machine_name'),
++    ),
+     'primary key' => array('bid'),
+   );
+ 
+@@ -218,3 +230,34 @@ function custom_breadcrumbs_taxonomy_update_6200() {
+   db_add_field('custom_breadcrumbs_taxonomy_vocabulary', 'name', array('type' => 'varchar', 'length' => 128, 'NOT NULL' => FALSE, 'description' => 'An optional name for the custom breadcrumb.'));
+   return t('Added name fields to custom breadcrumbs taxonomy tables for improved organization of custom breadcrumbs.');
+ }
++
++/**
++ * Adds unique machine name field for integration with features
++ */
++function custom_breadcrumbs_taxonomy_update_7000() {
++  db_change_field('custom_breadcrumbs_taxonomy_term', 'titles', 'titles', array('type' => 'text', 'NOT NULL' => TRUE, 'description' => 'A return-delimited list of titles for the breadcrumb links.'));
++  db_change_field('custom_breadcrumbs_taxonomy_term', 'paths', 'paths', array('type' => 'text', 'NOT NULL' => FALSE, 'description' => 'A return-delimited list of url paths for the breadcrumb links.'));
++  db_add_field('custom_breadcrumbs_taxonomy_term', 'machine_name', array('type' => 'varchar', 'length' => 255, 'NOT NULL' => TRUE, 'description' => 'The unique machine name for the custom breadcrumb.'));
++  db_add_unique_key('custom_breadcrumbs_taxonomy_term', 'machine_name', array('machine_name'));
++  db_change_field('custom_breadcrumbs_taxonomy_vocabulary', 'titles', 'titles', array('type' => 'text', 'NOT NULL' => TRUE, 'description' => 'A return-delimited list of titles for the breadcrumb links.'));
++  db_change_field('custom_breadcrumbs_taxonomy_vocabulary', 'paths', 'paths', array('type' => 'text', 'NOT NULL' => FALSE, 'description' => 'A return-delimited list of url paths for the breadcrumb links.'));
++  db_add_field('custom_breadcrumbs_taxonomy_vocabulary', 'machine_name', array('type' => 'varchar', 'length' => 255, 'NOT NULL' => TRUE, 'description' => 'The unique machine name for the custom breadcrumb.'));
++  db_add_unique_key('custom_breadcrumbs_taxonomy_vocabulary', 'machine_name', array('machine_name'));
++
++  $result = db_query("SELECT * FROM {custom_breadcrumbs_taxonomy_term}");
++  foreach ($result as $crumb) {
++    $term = taxonomy_term_load($crumb->tid);
++    db_update('custom_breadcrumbs_taxonomy_term')
++      ->fields(array('machine_name' => $term->vid . '-' . $crumb->tid . '-' . $crumb->bid))
++      ->condition('bid', $crumb->bid)
++      ->execute();
++  }
++  $result = db_query("SELECT * FROM {custom_breadcrumbs_taxonomy_vocabulary}");
++  foreach ($result as $crumb) {
++    db_update('custom_breadcrumbs_taxonomy_vocabulary')
++      ->fields(array('machine_name' => $crumb->vid . '-' . $crumb->bid))
++      ->condition('bid', $crumb->bid)
++      ->execute();
++  }
++  return t('Removed size limit on titles and paths fields. Added unique machine name field for integration with features.');
++}
+diff --git a/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.module b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.module
+index d00ae85..37c16ae 100644
+--- a/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.module
++++ b/custom_breadcrumbs_taxonomy/custom_breadcrumbs_taxonomy.module
+@@ -52,12 +52,14 @@ function custom_breadcrumbs_taxonomy_cb_breadcrumb_info() {
+     'field' => 'vid',
+     'type' => 'taxonomy_vocabulary',
+     'name_constructor' => '_custom_breadcrumbs_taxonomy_vocabulary_breadcrumb_name',
++    'machine_name_constructor' => '_custom_breadcrumbs_taxonomy_vocabulary_breadcrumb_machine_name',
+   );
+   $breadcrumb_type_info['taxonomy_term'] = array(
+     'table' => 'custom_breadcrumbs_taxonomy_term',
+     'field' => 'tid',
+     'type' => 'taxonomy_term',
+     'name_constructor' => '_custom_breadcrumbs_taxonomy_term_breadcrumb_name',
++    'machine_name_constructor' => '_custom_breadcrumbs_taxonomy_term_breadcrumb_machine_name',
+   );
+   return $breadcrumb_type_info;
+ }
+@@ -100,6 +102,34 @@ function _custom_breadcrumbs_taxonomy_vocabulary_breadcrumb_name($breadcrumb) {
+ }
+ 
+ /**
++ * Constructs a default machine name from the taxonomy vocabulary for features integration.
++ *
++ * @param $breadcrumb
++ *   The breadcrumb object.
++ *
++ * @return
++ *   A text string that will be used for feature integration.
++ */
++function _custom_breadcrumbs_taxonomy_term_breadcrumb_machine_name($breadcrumb) {
++  $term = taxonomy_term_load($breadcrumb->tid);
++  return $term->vid .'-'. $breadcrumb->tid . '-'. $breadcrumb->bid;
++}
++
++/**
++ * Constructs a default machine name from the taxonomy vocabulary for features integration.
++ *
++ * @param $breadcrumb
++ *   The breadcrumb object.
++ *
++ * @return
++ *   A text string that will be used for feature integration.
++ */
++function _custom_breadcrumbs_taxonomy_vocabulary_breadcrumb_machine_name($breadcrumb) {
++  $vocabulary = taxonomy_vocabulary_load($breadcrumb->vid);
++  return $breadcrumb->vid . '-'. $breadcrumb->bid;
++}
++
++/**
+  * Implements hook_menu().
+  */
+ function custom_breadcrumbs_taxonomy_menu() {
+@@ -582,6 +612,23 @@ function custom_breadcrumbs_taxonomy_minimum_module_weight() {
+ }
+ 
+ /**
++ * Implementation of hook_features_api
++ *
++ * Here we define the components that we want to make exportable.  For this
++ * particular module, we want to make the configurations exportable.
++ */
++function custom_breadcrumbs_taxonomy_features_api() {
++  return array(
++    'custom_breadcrumbs_taxonomy_config' => array(
++      'name' => 'Custom Breadcrumbs Taxonomy',
++      'file' => drupal_get_path('module', 'custom_breadcrumbs_taxonomy') .'/custom_breadcrumbs_taxonomy.features.inc',
++      'default_hook' => 'custom_breadcrumbs_taxonomy_config_features_default_settings',
++      'feature_source' => TRUE,
++    ),
++  );
++}
++
++/**
+  * Implements hook_exit().
+  */
+ function custom_breadcrumbs_taxonomy_exit() {
+diff --git a/custom_breadcrumbs_views/custom_breadcrumbs_views.features.inc b/custom_breadcrumbs_views/custom_breadcrumbs_views.features.inc
+new file mode 100644
+index 0000000..af5b146
+--- /dev/null
++++ b/custom_breadcrumbs_views/custom_breadcrumbs_views.features.inc
+@@ -0,0 +1,147 @@
++<?php
++
++/**
++ * Implementation of hook_features_export_options. [component_hook]
++ *
++ * This hook will alert features of which specific items of this component may
++ * be exported. For instances, in this case, we want to make available all the
++ * existing items.  If there are no items to be exported, this component will
++ * not be made available in the features export page.
++ *
++ * @return array
++ *   A keyed array of items, suitable for use with a FormAPI select or
++ *   checkboxes element.
++ */
++function custom_breadcrumbs_views_config_features_export_options() {
++  $options = array();
++  $result = db_query('SELECT machine_name, views_path FROM {custom_breadcrumbs_views}', array());
++  foreach ($result as $crumb) {
++    $options[$crumb->machine_name] = 'Views path: '. $crumb->views_path;
++  }
++  return $options;
++}
++
++/**
++ * Implementation of hook_features_export [component hook]
++ *
++ * This is a component hook, rather then a module hook, therefore this is the
++ * callback from hook_features_api which relates to the specific component we
++ * are looking to export.  When a specific instance of the component we are
++ * looking to export is selected, this will include the necessariy item, plus
++ * any dependencies into our export array.
++ *
++ * @param array $data
++ *   this is the machine name for the component in question
++ * @param array &$export
++ *   array of all components to be exported
++ * @param string $module_name
++ *   The name of the feature module to be generated.
++ * @return array
++ *   The pipe array of further processors that should be called
++ */
++function custom_breadcrumbs_views_config_features_export($data, &$export, $module_name) {
++  //we have module dependencies in order for this module to function properly
++  //so we'll add them here
++  $export['dependencies']['custom_breadcrumbs_views'] = 'custom_breadcrumbs_views';
++
++  // The following is the simplest implementation of a straight object export
++  // with no further export processors called.
++  foreach ($data as $component) {
++    $export['features']['custom_breadcrumbs_views_config'][$component] = $component;
++  }
++  return array();
++}
++
++/**
++ * Implementation of hook_features_export_render. [component hook]
++ *
++ * This hook will be invoked in order to export
++ * Component hook. The hook should be implemented using the name ot the
++ * component, not the module, eg. [component]_features_export() rather than
++ * [module]_features_export().
++ *
++ * Render one or more component objects to code.
++ *
++ * @param string $module_name
++ *   The name of the feature module to be exported.
++ * @param array $data
++ *   An array of machine name identifiers for the objects to be rendered.
++ * @param array $export
++ *   The full export array of the current feature being exported. This is only
++ *   passed when hook_features_export_render() is invoked for an actual feature
++ *   update or recreate, not during state checks or other operations.
++ * @return array
++ *   An associative array of rendered PHP code where the key is the name of the
++ *   hook that should wrap the PHP code. The hook should not include the name
++ *   of the module, e.g. the key for `hook_example` should simply be `example`.
++ */
++function custom_breadcrumbs_views_config_features_export_render($module_name, $data, $export = NULL) {
++  $code = array();
++  $code[] = '  $custom_breadcrumbs_views_configs = array();';
++  $code[] = '';
++  foreach ($data as $option) {
++    //retrieve the contest information
++    $item = _custom_breadcrumbs_views_config_get_data($option);
++    //add the contest code to the feature
++    if (isset($item[$option])) {
++      $code[] = '  $custom_breadcrumbs_views_configs[] = '. features_var_export($item, '  ') .';';
++    }
++  }
++  $code[] = '  return $custom_breadcrumbs_views_configs;';
++  $code = implode("\n", $code);
++  return array('custom_breadcrumbs_views_config_features_default_settings' => $code);
++}
++
++/*
++ * Basic function to retrieve the information to be exported.
++ */
++function _custom_breadcrumbs_views_config_get_data($option) {
++  $result = db_query('SELECT * FROM {custom_breadcrumbs_views} WHERE machine_name = :machine_name', array(':machine_name' => $option));
++  $crumb = array();
++  if ($result->rowCount() > 0) {
++    $crumb = $result->fetchAssoc();
++    // Remove the auto-increment value from the breadcrumb config
++    unset($crumb['bid']);
++  }
++  return array($option => $crumb);
++}
++
++/**
++ * Implementation of hook_features_rebuild(). [component_hook]
++ */
++function custom_breadcrumbs_views_config_features_rebuild($module) {
++  $items = module_invoke($module, 'custom_breadcrumbs_views_config_features_default_settings');
++  //loop over the items we need to recreate
++  foreach ($items as $option => $item) {
++    //basic function to take the array and store in the database
++    $saved = _custom_breadcrumbs_views_config_set_data($item);
++  }
++}
++
++/*
++ * Basic function to take the array and store in the database.
++ */
++function _custom_breadcrumbs_views_config_set_data($item) {
++  $values = array_values($item);
++  db_delete('custom_breadcrumbs_views')
++    ->condition('machine_name', $values[0]['machine_name'])
++    ->execute();
++  $result = db_insert('custom_breadcrumbs_views')
++    ->fields(array(
++      'name' => $values[0]['name'],
++      'machine_name' => $values[0]['machine_name'],
++      'titles' => $values[0]['titles'],
++      'paths' => $values[0]['paths'],
++      'visibility_php' => $values[0]['visibility_php'],
++      'language' => $values[0]['language'],
++      'views_path' => $values[0]['views_path']))
++    ->execute();
++  return $result;
++}
++
++/**
++ * Implementation of hook_features_revert(). [component_hook]
++ */
++function custom_breadcrumbs_views_config_features_revert($module) {
++  custom_breadcrumbs_views_config_features_rebuild($module);
++}
+diff --git a/custom_breadcrumbs_views/custom_breadcrumbs_views.info b/custom_breadcrumbs_views/custom_breadcrumbs_views.info
+index fa1a848..6eaf3e3 100644
+--- a/custom_breadcrumbs_views/custom_breadcrumbs_views.info
++++ b/custom_breadcrumbs_views/custom_breadcrumbs_views.info
+@@ -8,3 +8,4 @@ configure = admin/config/user-interface/custom-breadcrumbs
+ 
+ files[] = custom_breadcrumbs_views.install
+ files[] = custom_breadcrumbs_views.module
++files[] = custom_breadcrumbs_views.features.inc
+diff --git a/custom_breadcrumbs_views/custom_breadcrumbs_views.install b/custom_breadcrumbs_views/custom_breadcrumbs_views.install
+index 3f5055b..cc6bf9e 100644
+--- a/custom_breadcrumbs_views/custom_breadcrumbs_views.install
++++ b/custom_breadcrumbs_views/custom_breadcrumbs_views.install
+@@ -60,18 +60,21 @@ function custom_breadcrumbs_views_schema() {
+         'not null' => FALSE,
+         'description' => 'An optional name for the custom breadcrumb.',
+       ),
+-      'titles' => array(
++      'machine_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+-        'default' => '',
+-        'description' => 'A return-delimited list of titles for the breadcrumb links.',
++        'description' => 'The unique machine name for the custom breadcrumb.',
++      ),
++      'titles' => array(
++        'type' => 'text',
++        'not null' => TRUE,
++        'description' => "A return-delimited list of titles for the breadcrumb links.",
+       ),
+       'paths' => array(
+-        'type' => 'varchar',
+-        'length' => 255,
++        'type' => 'text',
+         'not null' => FALSE,
+-        'description' => 'A return-delimited list of url paths for the breadcrumb links.',
++        'description' => "A return-delimited list of url paths for the breadcrumb links.",
+       ),
+       'visibility_php' => array(
+         'type' => 'text',
+@@ -97,6 +100,9 @@ function custom_breadcrumbs_views_schema() {
+       'language' => array('language'),
+       'vpath_language' => array('views_path', 'language'),
+     ),
++    'unique keys' => array(
++      'machine_name'  => array('machine_name'),
++    ),
+     'primary key' => array('bid'),
+   );
+   return $schema;
+@@ -114,5 +120,21 @@ function custom_breadcrumbs_views_update_6200() {
+   db_drop_field('set_active_menu');
+ }
+ 
++/**
++ * Adds unique machine name field for integration with features
++ */
++function custom_breadcrumbs_views_update_7000() {
++  db_change_field('custom_breadcrumbs_views', 'titles', 'titles', array('type' => 'text', 'NOT NULL' => TRUE, 'description' => 'A return-delimited list of titles for the breadcrumb links.'));
++  db_change_field('custom_breadcrumbs_views', 'paths', 'paths', array('type' => 'text', 'NOT NULL' => FALSE, 'description' => 'A return-delimited list of url paths for the breadcrumb links.'));
++  db_add_field('custom_breadcrumbs_views', 'machine_name', array('type' => 'varchar', 'length' => 255, 'NOT NULL' => TRUE, 'description' => 'The unique machine name for the custom breadcrumb.'));
++  db_add_unique_key('custom_breadcrumbs_views', 'machine_name', array('machine_name'));
+ 
+-
++  $result = db_query("SELECT * FROM {custom_breadcrumbs_views}");
++  foreach ($result as $crumb) {
++    db_update('custom_breadcrumbs_views')
++      ->fields(array('machine_name' => str_replace('%', 'arg', $crumb->views_path) . '-' . $crumb->bid))
++      ->condition('bid', $crumb->bid)
++      ->execute();
++  }
++  return t('Removed size limit on titles and paths fields. Added unique machine name field for integration with features.');
++}
+diff --git a/custom_breadcrumbs_views/custom_breadcrumbs_views.module b/custom_breadcrumbs_views/custom_breadcrumbs_views.module
+index 8be183f..26216b8 100644
+--- a/custom_breadcrumbs_views/custom_breadcrumbs_views.module
++++ b/custom_breadcrumbs_views/custom_breadcrumbs_views.module
+@@ -22,6 +22,7 @@ function custom_breadcrumbs_views_cb_breadcrumb_info() {
+     'field' => 'views_path',
+     'type' => 'views',
+     'name_constructor' => '_custom_breadcrumbs_views_breadcrumb_name',
++    'machine_name_constructor' => '_custom_breadcrumbs_views_breadcrumb_machine_name',
+   );
+   return $breadcrumb_type_info;
+ }
+@@ -42,6 +43,22 @@ function _custom_breadcrumbs_views_breadcrumb_name($breadcrumb) {
+ }
+ 
+ /**
++ * Constructs a default name for features integration.
++ *
++ * @param $breadcrumb
++ *   The breadcrumb object.
++ *
++ * @return
++ *   A text string that will be used for features integration.
++ */
++function _custom_breadcrumbs_views_breadcrumb_machine_name($breadcrumb) {
++drupal_set_message('Tralala...');
++  if (isset($breadcrumb->views_path)) {
++    return str_replace('%', 'arg', $breadcrumb->views_path) . '-' . $breadcrumb->bid;
++  }
++}
++
++/**
+  * Implements hook_menu().
+  */
+ function custom_breadcrumbs_views_menu() {
+@@ -172,3 +189,20 @@ function custom_breadcrumbs_views_form($form, &$form_state, $type) {
+ 
+   return $form;
+ }
++
++/**
++ * Implementation of hook_features_api
++ *
++ * Here we define the components that we want to make exportable.  For this
++ * particular module, we want to make the configurations exportable.
++ */
++function custom_breadcrumbs_views_features_api() {
++  return array(
++    'custom_breadcrumbs_views_config' => array(
++      'name' => 'Custom Breadcrumbs Views',
++      'file' => drupal_get_path('module', 'custom_breadcrumbs_views') .'/custom_breadcrumbs_views.features.inc',
++      'default_hook' => 'custom_breadcrumbs_views_config_features_default_settings',
++      'feature_source' => TRUE,
++    ),
++  );
++}
+diff --git a/custom_breadcrumbsapi/custom_breadcrumbsapi.features.inc b/custom_breadcrumbsapi/custom_breadcrumbsapi.features.inc
+new file mode 100644
+index 0000000..c3ad658
+--- /dev/null
++++ b/custom_breadcrumbsapi/custom_breadcrumbsapi.features.inc
+@@ -0,0 +1,147 @@
++<?php
++
++/**
++ * Implementation of hook_features_export_options. [component_hook]
++ *
++ * This hook will alert features of which specific items of this component may
++ * be exported. For instances, in this case, we want to make available all the
++ * existing items.  If there are no items to be exported, this component will
++ * not be made available in the features export page.
++ *
++ * @return array
++ *   A keyed array of items, suitable for use with a FormAPI select or
++ *   checkboxes element.
++ */
++function custom_breadcrumbsapi_config_features_export_options() {
++  $options = array();
++  $result = db_query('SELECT machine_name, module_page FROM {custom_breadcrumbsapi}', array());
++  foreach ($result as $crumb) {
++    $options[$crumb->machine_name] = 'Module Page: '. $crumb->module_page;
++  }
++  return $options;
++}
++
++/**
++ * Implementation of hook_features_export [component hook]
++ *
++ * This is a component hook, rather then a module hook, therefore this is the
++ * callback from hook_features_api which relates to the specific component we
++ * are looking to export.  When a specific instance of the component we are
++ * looking to export is selected, this will include the necessariy item, plus
++ * any dependencies into our export array.
++ *
++ * @param array $data
++ *   this is the machine name for the component in question
++ * @param array &$export
++ *   array of all components to be exported
++ * @param string $module_name
++ *   The name of the feature module to be generated.
++ * @return array
++ *   The pipe array of further processors that should be called
++ */
++function custom_breadcrumbsapi_config_features_export($data, &$export, $module_name) {
++  //we have module dependencies in order for this module to function properly
++  //so we'll add them here
++  $export['dependencies']['custom_breadcrumbsapi'] = 'custom_breadcrumbsapi';
++
++  // The following is the simplest implementation of a straight object export
++  // with no further export processors called.
++  foreach ($data as $component) {
++    $export['features']['custom_breadcrumbsapi_config'][$component] = $component;
++  }
++  return array();
++}
++
++/**
++ * Implementation of hook_features_export_render. [component hook]
++ *
++ * This hook will be invoked in order to export
++ * Component hook. The hook should be implemented using the name ot the
++ * component, not the module, eg. [component]_features_export() rather than
++ * [module]_features_export().
++ *
++ * Render one or more component objects to code.
++ *
++ * @param string $module_name
++ *   The name of the feature module to be exported.
++ * @param array $data
++ *   An array of machine name identifiers for the objects to be rendered.
++ * @param array $export
++ *   The full export array of the current feature being exported. This is only
++ *   passed when hook_features_export_render() is invoked for an actual feature
++ *   update or recreate, not during state checks or other operations.
++ * @return array
++ *   An associative array of rendered PHP code where the key is the name of the
++ *   hook that should wrap the PHP code. The hook should not include the name
++ *   of the module, e.g. the key for `hook_example` should simply be `example`.
++ */
++function custom_breadcrumbsapi_config_features_export_render($module_name, $data, $export = NULL) {
++  $code = array();
++  $code[] = '  $custom_breadcrumbsapi_configs = array();';
++  $code[] = '';
++  foreach ($data as $option) {
++    //retrieve the contest information
++    $item = _custom_breadcrumbsapi_config_get_data($option);
++    //add the contest code to the feature
++    if (isset($item[$option])) {
++      $code[] = '  $custom_breadcrumbsapi_configs[] = '. features_var_export($item, '  ') .';';
++    }
++  }
++  $code[] = '  return $custom_breadcrumbsapi_configs;';
++  $code = implode("\n", $code);
++  return array('custom_breadcrumbsapi_config_features_default_settings' => $code);
++}
++
++/*
++ * Basic function to retrieve the information to be exported.
++ */
++function _custom_breadcrumbsapi_config_get_data($option) {
++  $result = db_query('SELECT * FROM {custom_breadcrumbsapi} WHERE machine_name = :machine_name', array(':machine_name' => $option));
++  $crumb = array();
++  if ($result->rowCount() > 0) {
++    $crumb = $result->fetchAssoc();
++    // Remove the auto-increment value from the breadcrumb config
++    unset($crumb['bid']);
++  }
++  return array($option => $crumb);
++}
++
++/**
++ * Implementation of hook_features_rebuild(). [component_hook]
++ */
++function custom_breadcrumbsapi_config_features_rebuild($module) {
++  $items = module_invoke($module, 'custom_breadcrumbsapi_config_features_default_settings');
++  //loop over the items we need to recreate
++  foreach ($items as $option => $item) {
++    //basic function to take the array and store in the database
++    $saved = _custom_breadcrumbsapi_config_set_data($item);
++  }
++}
++
++/*
++ * Basic function to take the array and store in the database.
++ */
++function _custom_breadcrumbsapi_config_set_data($item) {
++  $values = array_values($item);
++  db_delete('custom_breadcrumbsapi')
++    ->condition('machine_name', $values[0]['machine_name'])
++    ->execute();
++  $result = db_insert('custom_breadcrumbsapi')
++    ->fields(array(
++      'name' => $values[0]['name'],
++      'machine_name' => $values[0]['machine_name'],
++      'titles' => $values[0]['titles'],
++      'paths' => $values[0]['paths'],
++      'visibility_php' => $values[0]['visibility_php'],
++      'language' => $values[0]['language'],
++      'module_page' => $values[0]['module_page']))
++    ->execute();
++  return $result;
++}
++
++/**
++ * Implementation of hook_features_revert(). [component_hook]
++ */
++function custom_breadcrumbsapi_config_features_revert($module) {
++  custom_breadcrumbsapi_config_features_rebuild($module);
++}
+diff --git a/custom_breadcrumbsapi/custom_breadcrumbsapi.info b/custom_breadcrumbsapi/custom_breadcrumbsapi.info
+index c529e82..0e64bd0 100644
+--- a/custom_breadcrumbsapi/custom_breadcrumbsapi.info
++++ b/custom_breadcrumbsapi/custom_breadcrumbsapi.info
+@@ -6,3 +6,4 @@ core = 7.x
+ 
+ files[] = custom_breadcrumbsapi.install
+ files[] = custom_breadcrumbsapi.module
++files[] = custom_breadcrumbsapi.features.inc
+diff --git a/custom_breadcrumbsapi/custom_breadcrumbsapi.install b/custom_breadcrumbsapi/custom_breadcrumbsapi.install
+index 3e01740..7fe8eaa 100644
+--- a/custom_breadcrumbsapi/custom_breadcrumbsapi.install
++++ b/custom_breadcrumbsapi/custom_breadcrumbsapi.install
+@@ -23,16 +23,19 @@ function custom_breadcrumbsapi_schema() {
+         'not null' => FALSE,
+         'description' => 'An optional name for the custom breadcrumb.',
+       ),
+-      'titles' => array(
++      'machine_name' => array(
+         'type' => 'varchar',
+         'length' => 255,
+         'not null' => TRUE,
+-        'default' => '',
++        'description' => 'The unique machine name for the custom breadcrumb.',
++      ),
++      'titles' => array(
++        'type' => 'text',
++        'not null' => TRUE,
+         'description' => "A return-delimited list of titles for the breadcrumb links.",
+       ),
+       'paths' => array(
+-        'type' => 'varchar',
+-        'length' => 255,
++        'type' => 'text',
+         'not null' => FALSE,
+         'description' => "A return-delimited list of url paths for the breadcrumb links.",
+       ),
+@@ -60,6 +63,9 @@ function custom_breadcrumbsapi_schema() {
+       'language' => array('language'),
+       'module_language' => array('module_page', 'language'),
+     ),
++    'unique keys' => array(
++      'machine_name'  => array('machine_name'),
++    ),
+     'primary key' => array('bid'),
+   );
+   return $schema;
+@@ -73,3 +79,21 @@ function custom_breadcrumbsapi_update_6200() {
+   db_add_field('name', array('type' => 'varchar', 'length' => 128, 'NOT NULL' => FALSE, 'description' => 'An optional name for the custom breadcrumb.'));
+ }
+ 
++/**
++ * Adds unique machine name field for integration with features
++ */
++function custom_breadcrumbsapi_update_7000() {
++  db_change_field('custom_breadcrumbsapi', 'titles', 'titles', array('type' => 'text', 'NOT NULL' => TRUE, 'description' => 'A return-delimited list of titles for the breadcrumb links.'));
++  db_change_field('custom_breadcrumbsapi', 'paths', 'paths', array('type' => 'text', 'NOT NULL' => FALSE, 'description' => 'A return-delimited list of url paths for the breadcrumb links.'));
++  db_add_field('custom_breadcrumbsapi', 'machine_name', array('type' => 'varchar', 'length' => 255, 'NOT NULL' => TRUE, 'description' => 'The unique machine name for the custom breadcrumb.'));
++  db_add_unique_key('custom_breadcrumbsapi', 'machine_name', array('machine_name'));
++
++  $result = db_query("SELECT * FROM {custom_breadcrumbsapi}");
++  foreach ($result as $crumb) {
++    db_update('custom_breadcrumbsapi')
++      ->fields(array('machine_name' => $crumb->module_page .'-'. $crumb->bid))
++      ->condition('bid', $crumb->bid)
++      ->execute();
++  }
++  return t('Removed size limit on titles and paths fields. Added unique machine name field for integration with features.');
++}
+diff --git a/custom_breadcrumbsapi/custom_breadcrumbsapi.module b/custom_breadcrumbsapi/custom_breadcrumbsapi.module
+index 259ccd1..cd1a20b 100644
+--- a/custom_breadcrumbsapi/custom_breadcrumbsapi.module
++++ b/custom_breadcrumbsapi/custom_breadcrumbsapi.module
+@@ -21,6 +21,7 @@ function custom_breadcrumbsapi_cb_breadcrumb_info() {
+     'field' => 'module_page',
+     'type' => 'module',
+     'name_constructor' => '_custom_breadcrumbsapi_breadcrumb_name',
++    'machine_name_constructor' => '_custom_breadcrumbsapi_breadcrumb_machine_name',
+   );
+   return $breadcrumb_type_info;
+ }
+@@ -41,6 +42,21 @@ function _custom_breadcrumbsapi_breadcrumb_name($breadcrumb) {
+ }
+ 
+ /**
++ * Constructs a default name for features integration.
++ *
++ * @param $breadcrumb
++ *   The breadcrumb object.
++ *
++ * @return
++ *   A text string that will be used for features integration.
++ */
++function _custom_breadcrumbsapi_breadcrumb_machine_name($breadcrumb) {
++  if (isset($breadcrumb->module_page)) {
++    return $breadcrumb->module_page .'-'. $breadcrumb->bid;
++  }
++}
++
++/**
+  * Implements hook_help().
+  */
+ function custom_breadcrumbsapi_help($path, $arg) {
+@@ -193,3 +209,20 @@ function custom_breadcrumbsapi_preprocess(&$variables, $hook) {
+     }
+   }
+ }
++
++/**
++ * Implementation of hook_features_api
++ *
++ * Here we define the components that we want to make exportable.  For this
++ * particular module, we want to make the configurations exportable.
++ */
++function custom_breadcrumbsapi_features_api() {
++  return array(
++    'custom_breadcrumbsapi_config' => array(
++      'name' => 'Custom Breadcrumbs Api',
++      'file' => drupal_get_path('module', 'custom_breadcrumbsapi') .'/custom_breadcrumbsapi.features.inc',
++      'default_hook' => 'custom_breadcrumbsapi_config_features_default_settings',
++      'feature_source' => TRUE,
++    ),
++  );
++}
