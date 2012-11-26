@@ -1,0 +1,18 @@
+diff --git a/media.media.inc b/media.media.inc
+index 224c353..2d896d5 100644
+--- a/media.media.inc
++++ b/media.media.inc
+@@ -15,11 +15,13 @@ function media_media_browser_plugin_info() {
+     'class' => 'MediaBrowserUpload',
+   );
+ 
++  /*
+   $info['library'] = array(
+     'title' => t('Library'),
+     'weight' => 10,
+     'class' => 'MediaBrowserLibrary',
+   );
++   */
+ 
+   // Add a plugin for each View display using the 'media_browser' display type.
+   foreach (views_get_enabled_views() as $view) {
