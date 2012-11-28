@@ -1,0 +1,168 @@
+diff --git a/galleryformatter.module b/galleryformatter.module
+index f4947e1..956c410 100644
+--- a/galleryformatter.module
++++ b/galleryformatter.module
+@@ -243,16 +243,15 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+      */
+     // Grab and sanitize image information
+     // $renderitems['slides'][$delta]['description'] = $item['description']; // so far no description in d7 image fields
+-    if (!empty($item['title'])) {
+-      // Sanitize the title
+-      if(strpos($item['title'], '<') !== FALSE) {
+-        $item['title'] = strip_tags($item['title']);
+-      }
+-    }
+-    else {
+-      $item['title'] = ''; // prevents php notices
++    if (isset($item['field_caption']['und']['0']['safe_value'])) {
++      $item['title'] = $item['field_caption']['und']['0']['safe_value'];
++    } else {
++      $item['title'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
+     }
+-    $renderitems['slides'][$delta]['title'] = $item['title'];
++
++    //ASC Overrides
++
++    $renderitems['slides'][$delta]['title'] = (isset($item['field_caption']['und']['0']) ? $item['field_caption']['und']['0']['safe_value'] : '');
+     $item['filename'] = $item['filename'] = '';
+ 
+     // Check if alt attribute is already set and sanitize it, if not use the filename as alt attribute
+@@ -264,9 +263,16 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+     else {
+       $item['alt'] = $item['filename'];
+     }
++    //ASC Overrides
++    $item['alt'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
+     $renderitems['slides'][$delta]['alt'] = $item['alt'];
+ 
+     // If the title is empty use alt or the node title in that order.
++    if (isset($item['field_caption']['und']['0']['safe_value'])) {
++      $item['title'] = $item['field_caption']['und']['0']['safe_value'];
++    } else {
++      $item['title'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
++    }
+     if (empty($item['title'])) {
+       if (!empty($item['alt'])) {
+         $item['title'] = $item['alt'];
+diff --git a/gallerystyles/greenarrows/greenarrows.css b/gallerystyles/greenarrows/greenarrows.css
+index 948e80c..690e711 100644
+--- a/gallerystyles/greenarrows/greenarrows.css
++++ b/gallerystyles/greenarrows/greenarrows.css
+@@ -8,16 +8,24 @@
+ .galleryformatter-greenarrows .gallery-thumbs .wrapper,
+ .galleryformatter-greenarrows .gallery-thumbs li.active a,
+ .galleryformatter-greenarrows .gallery-thumbs li a:hover,
+-.galleryformatter-greenarrows .view-full { background:url("images/sprite.png") no-repeat scroll 0 0 transparent; }
++.galleryformatter-greenarrows .view-full { background:url("images/arrows.png") no-repeat scroll 0 0 transparent; }
+ 
+ .galleryformatter-greenarrows .gallery-slides .panel-overlay {
+   position: absolute;
+-  bottom: 0.5em; left: 0;
+-  background: transparent url(images/bg-trans.png) repeat;
++  bottom: 0; left: 0;
++  background: black url(images/bg-trans.png) repeat;
+   width:100%;
+   color: white;
++  opacity: 0.8;
+ }
+-.galleryformatter-greenarrows .gallery-slides .panel-overlay .overlay-inner { padding: 10px; }
++
++.galleryformatter-greenarrows .gallery-slides .panel-overlay span {
++  font-family: Helvetica, Arial, sans-serif;
++  text-transform: uppercase;
++  font-size: 0.875em;
++  font-weight: 100;
++}
++.galleryformatter-greenarrows .gallery-slides .panel-overlay .overlay-inner { padding: 0 10px; }
+ .galleryformatter-greenarrows .gallery-thumbs .wrapper {
+   overflow: auto;
+   line-height:0;
+@@ -59,11 +67,11 @@
+   opacity: 1;
+ }
+ .galleryformatter-greenarrows .gallery-thumbs li img {
+-  filter:alpha(opacity=60);
+-  -ms-filter:”alpha(opacity=60)”;
+-  -moz-opacity:0.6;
+-  -khtml-opacity: 0.6;
+-  opacity: 0.6;
++  filter:alpha(opacity=20);
++  -ms-filter:”alpha(opacity=20)”;
++  -moz-opacity:0.2;
++  -khtml-opacity: 0.2;
++  opacity: 0.2;
+ }
+ 
+ .galleryformatter-greenarrows .gallery-thumbs .arrow {
+@@ -72,41 +80,44 @@
+   height:46px;
+   position:absolute;
+   text-indent:-9999px;
+-  width:46px;
++  width:32px;
++  opacity: 0.5;
+ }
+ 
+ .galleryformatter-greenarrows .gallery-thumbs .forward {
+   background-position: 0px 0;
+-  right: 0;
++  left: 0;
+ }
+ 
+ .galleryformatter-greenarrows .gallery-thumbs .back {
+-  background-position: -4px -102px;
+-  left: 0;
++  background-position: -32px 0;
++  right: 0;
+ }
+ 
+-.galleryformatter-greenarrows .gallery-thumbs .forward:hover { background-position: 0px -52px; }
++.galleryformatter-greenarrows .gallery-thumbs .forward:hover { opacity: 0.8; }
+ 
+-.galleryformatter-greenarrows .gallery-thumbs .back:hover { background-position: -4px -156px; }
++.galleryformatter-greenarrows .gallery-thumbs .back:hover { opacity: 0.8; }
+ 
+ .galleryformatter-greenarrows .slide-button {
+-  background: transparent url(images/next-prev.png) no-repeat top left;
+-  height: 64px;
++  background: transparent url(images/arrows.png) no-repeat top left;
++  height: 32px;
+   width: 32px;
+   top: 43%;
+   text-indent: -9999px;
+-  filter:alpha(opacity=20);
+-  -ms-filter:”alpha(opacity=20)”;
+-  -moz-opacity:0.2;
+-  -khtml-opacity: 0.2;
+-  opacity: 0.2;
++  filter:alpha(opacity=30);
++  -ms-filter:”alpha(opacity=30)”;
++  -moz-opacity:0.3;
++  -khtml-opacity: 0.3;
++  opacity: 0.3;
+ }
+ 
+ .galleryformatter-greenarrows .prev-slide {
+   background-position: top left;
++  margin-left: 1em;
+ }
+ .galleryformatter-greenarrows .next-slide {
+   background-position: top right;
++  margin-right: 1em;
+ }
+ .galleryformatter-greenarrows .slide-button:hover {
+     filter: alpha(opacity=100);
+diff --git a/theme/galleryformatter.tpl.php b/theme/galleryformatter.tpl.php
+index b5dbd77..382d041 100644
+--- a/theme/galleryformatter.tpl.php
++++ b/theme/galleryformatter.tpl.php
+@@ -28,8 +28,7 @@
+           <?php if (!empty($data['title']) || !empty($data['alt'])): ?>
+             <div class="panel-overlay">
+               <div class="overlay-inner">
+-                <?php if ($data['alt']): ?><h4><?php print $data['alt']; ?></h4><?php endif; ?>
+-                <?php if ($data['title']): ?><h3><?php print $data['title']; ?></h3><?php endif; ?>
++                <span><?php print $data['title']; ?></span>
+               </div>
+             </div>
+           <?php endif; ?>
