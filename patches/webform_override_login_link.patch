@@ -1,0 +1,14 @@
+diff --git a/webform.module b/webform.module
+index 973fd65..a81b200 100644
+--- a/webform.module
++++ b/webform.module
+@@ -1794,7 +1794,8 @@ function theme_webform_view_messages($variables) {
+     }
+     elseif (isset($allowed_roles[2])) {
+       // The "authenticated user" role is allowed to submit and the user is currently logged-out.
+-      $login = url('user/login', array('query' => drupal_get_destination()));
++      //$login = url('user/login', array('query' => drupal_get_destination()));
++      $login = '/Shibboleth.sso/Login?target=' . urlencode(request_uri());
+       $register = url('user/register', array('query' => drupal_get_destination()));
+       if (variable_get('user_register', 1) == 0) {
+         $message = t('You must <a href="!login">login</a> to view this form.', array('!login' => $login));
