@@ -1,7 +1,7 @@
-diff --git a/patches/signup/includes/node_output.inc b/patches/signup/includes/node_output.inc
+diff --git a/includes/node_output.inc b/includes/node_output.inc
 index 4a722ef..fc295e9 100644
---- a/patches/signup/includes/node_output.inc
-+++ b/patches/signup/includes/node_output.inc
+--- a/includes/node_output.inc
++++ b/includes/node_output.inc
 @@ -67,10 +67,11 @@ function _signup_current_user_signup($node, $type = 'node') {
          // If not, then display the appropriate login/register link if the
          // default authenticated user role can signup.
