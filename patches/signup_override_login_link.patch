@@ -15,25 +15,3 @@ index 4a722ef..fc295e9 100644
              '!register' => l(t('register'), 'user/register', array('query' => drupal_get_destination())),
              '%node_type' => node_type_get_name($node->type),
            );
-diff --git a/patches/signup_override_login_link.patch b/patches/signup_override_login_link.patch
-index 9482ae5..e69de29 100644
---- a/patches/signup_override_login_link.patch
-+++ b/patches/signup_override_login_link.patch
-@@ -1,17 +0,0 @@
--diff --git a/includes/signup_form.inc b/includes/signup_form.inc
--index 79ae2c2..7eba4d0 100644
----- a/includes/signup_form.inc
--+++ b/includes/signup_form.inc
--@@ -51,10 +51,11 @@ function signup_form($form, &$form_state, $node, $signup_type = 'auth', $fieldse
--   $signup_form = array();
--   if ($signup_type == 'anon') {
--     $anon_form = array();
--+    $login = 'Shibboleth.sso/Login?target=' . urlencode(request_uri());
--     $anon_form['signup_anon_mail'] = array(
--       '#type' => 'textfield',
--       '#title' => t('Email'),
---      '#description' => t('An e-mail address is required for users who are not registered at this site. If you are a registered user at this site, please !login to sign up for this %node_type.', array('!login' => l(t('login'), 'user/login', array('query' => drupal_get_destination())), '%node_type' => node_type_get_name($node->type))),
--+      '#description' => t('Please !login to sign up for this %node_type.', array('!login' => $login), '%node_type' => node_type_get_name($node->type))),
--       '#size' => 40,
--       '#maxlength' => 255,
--       '#required' => TRUE,
