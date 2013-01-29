@@ -1,0 +1,29 @@
+diff --git a/auto_nodetitle.module b/auto_nodetitle.module
+index dc0d404..711cb1b 100644
+--- a/auto_nodetitle.module
++++ b/auto_nodetitle.module
+@@ -121,6 +121,15 @@ function auto_nodetitle_operations_update($nodes) {
+   }
+ }
+ 
++/**
++ * Callback function to remove entities.
++ */
++function _auto_nodetitle_nohtmlentities(&$replacements, $data, $options) {
++  foreach ($replacements as $key => $value) {
++    $replacements[$key] = html_entity_decode($value, ENT_QUOTES);
++  }
++}
++
+ /**
+   * Helper function to generate the title according to the settings.
+   *
+@@ -128,7 +137,7 @@ function auto_nodetitle_operations_update($nodes) {
+   */
+ function _auto_nodetitle_patternprocessor($pattern, $node) {
+   // Replace tokens.
+-  $output = token_replace($pattern, array('node' => $node), array('sanitize' => FALSE));
++  $output = token_replace($pattern, array('node' => $node), array('callback' => '_auto_nodetitle_nohtmlentities', 'sanitize' => FALSE, 'clear' => TRUE));
+   // Evalute PHP.
+   if (variable_get('ant_php_' . $node->type, 0)) {
+     $output = auto_nodetitle_eval($output, $node);
