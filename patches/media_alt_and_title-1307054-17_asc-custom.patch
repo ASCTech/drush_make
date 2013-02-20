@@ -9,13 +9,13 @@ index 5f2c82e..7ca4494 100644
 +  $form['options']['alt'] = array(
 +    '#type' => 'textfield',
 +    '#title' => t('Alternate text'),
-+    '#default_value' => $file->field_file_image_alt_text['und']['0']['safe_value']
++    '#default_value' => $file->field_file_image_alt_text['und']['0']['safe_value'],
 +  );
 +
 +  $form['options']['title'] = array(
 +    '#type' => 'textfield',
 +    '#title' => t('Title'),
-+    '#default_value' => $file->field_caption['und']['0']['safe_value']
++    '#default_value' => $file->field_file_image_title['und']['0']['safe_value'],
 +  );
 +
    // Similar to a form_alter, but we want this to run first so that media.types.inc
