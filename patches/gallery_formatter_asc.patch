@@ -166,3 +166,57 @@ index b5dbd77..382d041 100644
                </div>
              </div>
            <?php endif; ?>
+diff --git a/galleryformatter.module b/galleryformatter.module
+index f3b1582..617121a 100644
+--- a/galleryformatter.module
++++ b/galleryformatter.module
+@@ -243,15 +243,9 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+      */
+     // Grab and sanitize image information
+     // $renderitems['slides'][$delta]['description'] = $item['description']; // so far no description in d7 image fields
+-    if (!empty($item['title'])) {
+-      // Sanitize the title
+-      if(strpos($item['title'], '<') !== FALSE) {
+-        $item['title'] = strip_tags($item['title']);
+-      }
+-    }
+-    else {
+-      $item['title'] = ''; // prevents php notices
+-    }
++    $item['alt'] = $item['field_file_image_alt_text']['und'][0]['safe_value']; 
++    $item['title'] = (($item['field_caption']['und'][0]['value'] == 1) ? $item['field_file_image_title_text']['und'][0]['safe_value'] : '');
++
+     $renderitems['slides'][$delta]['title'] = $item['title'];
+     $item['filename'] = $item['filename'] = '';
+ 
+@@ -261,29 +255,8 @@ function galleryformatter_field_formatter_view($entity_type, $entity, $field, $i
+         $item['alt'] = strip_tags($item['alt']);
+       }
+     }
+-    else {
+-      $item['alt'] = $item['filename'];
+-    }
+-    $renderitems['slides'][$delta]['alt'] = $item['alt'];
+ 
+-    // If the title is empty use alt or the node title in that order.
+-    if (empty($item['title'])) {
+-      if (!empty($item['alt'])) {
+-        $item['title'] = $item['alt'];
+-      }
+-      else {
+-        if(!empty($entity->title)){
+-          if(strpos($entity->title, '<') !== FALSE) {
+-            $item['title'] = strip_tags($entity->title);
+-          }
+-          else {
+-            $item['title'] = $entity->title;
+-          }
+-        }
+-        // if we have more than one image, add the image count to the title so they are not all the same.
+-        $item['title'] = ($num_of_images > 1) ? $item['title'] . t(' image ') . ($delta + 1) : $item['title'];
+-      }
+-    }
++    $renderitems['slides'][$delta]['alt'] = $item['alt'];
+ 
+     // prepare the unique hash id per image
+     $slideset_id = $field['field_name'] . '-' . $entity_id;
