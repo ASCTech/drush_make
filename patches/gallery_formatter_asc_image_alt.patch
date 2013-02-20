@@ -14,8 +14,8 @@ index f4947e1..956c410 100644
 -    }
 -    else {
 -      $item['title'] = ''; // prevents php notices
-+    if (isset($item['field_caption']['und']['0']['safe_value'])) {
-+      $item['title'] = $item['field_caption']['und']['0']['safe_value'];
++    if ($item['field_file_image_title_text']['und']['0']['safe_value'] == 1) {
++      $item['title'] = $item['field_file_image_title_text']['und']['0']['safe_value'];
 +    } else {
 +      $item['title'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
      }
@@ -23,7 +23,7 @@ index f4947e1..956c410 100644
 +
 +    //ASC Overrides
 +
-+    $renderitems['slides'][$delta]['title'] = (isset($item['field_caption']['und']['0']) ? $item['field_caption']['und']['0']['safe_value'] : '');
++    $renderitems['slides'][$delta]['title'] = ($item['field_caption']['und']['0'] == 1) ? $item['field_file_image_title_text']['und']['0']['safe_value'] : '');
      $item['filename'] = $item['filename'] = '';
  
      // Check if alt attribute is already set and sanitize it, if not use the filename as alt attribute
@@ -36,8 +36,8 @@ index f4947e1..956c410 100644
      $renderitems['slides'][$delta]['alt'] = $item['alt'];
  
      // If the title is empty use alt or the node title in that order.
-+    if (isset($item['field_caption']['und']['0']['safe_value'])) {
-+      $item['title'] = $item['field_caption']['und']['0']['safe_value'];
++    if (isset($item['field_file_image_title_text']['und']['0']['safe_value'])) {
++      $item['title'] = $item['field_file_image_title_text']['und']['0']['safe_value'];
 +    } else {
 +      $item['title'] = $item['field_file_image_alt_text']['und']['0']['safe_value'];
 +    }
