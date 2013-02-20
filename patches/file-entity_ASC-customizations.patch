@@ -1,0 +1,78 @@
+diff --git a/file_entity.module b/file_entity.module
+index e99f5c0..9c804ac 100644
+--- a/file_entity.module
++++ b/file_entity.module
+@@ -168,16 +168,20 @@ function file_entity_menu() {
+     'type' => MENU_DEFAULT_LOCAL_TASK,
+     'weight' => -10,
+   );
+-  $items['file/%file/usage'] = array(
+-    'title' => 'Usage',
+-    'page callback' => 'file_entity_usage_page',
+-    'page arguments' => array(1),
+-    'access callback' => 'file_entity_access',
+-    'access arguments' => array('update', 1),
+-    'type' => MENU_LOCAL_TASK,
+-    'context' => MENU_CONTEXT_PAGE,
+-    'file' => 'file_entity.pages.inc',
+-  );
++/*
++ * We have removed the usage tab for ASC, since WYSIWYG uploads don't register.
++ *
++ *  $items['file/%file/usage'] = array(
++ *    'title' => 'Usage',
++ *    'page callback' => 'file_entity_usage_page',
++ *    'page arguments' => array(1),
++ *    'access callback' => 'file_entity_access',
++ *    'access arguments' => array('update', 1),
++ *    'type' => MENU_LOCAL_TASK,
++ *    'context' => MENU_CONTEXT_PAGE,
++ *    'file' => 'file_entity.pages.inc',
++ *  );
++ */
+   $items['file/%file/edit'] = array(
+     'title' => 'Edit',
+     'page callback' => 'drupal_get_form',
+diff --git a/file_entity.pages.inc b/file_entity.pages.inc
+index 57f91d0..9b35230 100644
+--- a/file_entity.pages.inc
++++ b/file_entity.pages.inc
+@@ -281,21 +281,23 @@ function file_entity_edit($form, &$form_state, $file) {
+     '#weight' => -10,
+   );
+ 
+-  // Add a 'replace this file' upload field if the file is a local file only.
+-  if (file_entity_file_is_local($file)) {
+-    // Set up replacement file validation.
+-    $replacement_options = array();
+-    // The replacement file must have the same extension as the original file.
+-    $replacement_options['file_extensions'] = pathinfo($file->uri, PATHINFO_EXTENSION);
+-
+-    $form['replace_upload'] = array(
+-      '#type' => 'file',
+-      '#title' => t('Replace file'),
+-      '#description' => t('This file will replace the existing file. This action cannot be undone.'),
+-      '#upload_validators' => file_entity_get_upload_validators($replacement_options),
+-      '#pre_render' => array('file_entity_upload_validators_pre_render'),
+-    );
+-  }
++/* We have removed the replace file for ASC, as it might confuse users of WYSIWYG.
++ *  // Add a 'replace this file' upload field if the file is a local file only.
++ *  if (file_entity_file_is_local($file)) {
++ *    // Set up replacement file validation.
++ *    $replacement_options = array();
++ *    // The replacement file must have the same extension as the original file.
++ *    $replacement_options['file_extensions'] = pathinfo($file->uri, PATHINFO_EXTENSION);
++ *
++ *    $form['replace_upload'] = array(
++ *      '#type' => 'file',
++ *      '#title' => t('Replace file'),
++ *      '#description' => t('This file will replace the existing file. This action cannot be undone.'),
++ *      '#upload_validators' => file_entity_get_upload_validators($replacement_options),
++ *      '#pre_render' => array('file_entity_upload_validators_pre_render'),
++ *    );
++ *  }
++ */
+ 
+   $form['preview'] = file_view_file($file, 'preview');
+ 
