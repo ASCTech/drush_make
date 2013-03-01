@@ -1,0 +1,65 @@
+diff --git a/asc_quicksites_features.views_default.inc b/asc_quicksites_features.views_default.inc
+index 9f02d0e..62644e4 100644
+--- a/asc_quicksites_features.views_default.inc
++++ b/asc_quicksites_features.views_default.inc
+@@ -1101,7 +1101,7 @@ function asc_quicksites_features_views_default_views() {
+       'wildcard_substitution' => 'All',
+       'title' => '',
+       'breadcrumb' => '',
+-      'default_argument_type' => 'date',
++      'default_argument_type' => 'php',
+       'default_argument' => '',
+       'validate_type' => 'none',
+       'validate_fail' => 'not found',
+@@ -1117,9 +1117,12 @@ function asc_quicksites_features_views_default_views() {
+       'validate_user_argument_type' => 'uid',
+       'validate_user_roles' => array(
+         2 => 0,
++        6 => 0,
+         5 => 0,
+         4 => 0,
+-        3 => 0,
++        8 => 0,
++        9 => 0,
++        7 => 0,
+       ),
+       'override' => array(
+         'button' => 'Use default',
+@@ -1128,13 +1131,19 @@ function asc_quicksites_features_views_default_views() {
+       'default_options_div_prefix' => '',
+       'default_argument_user' => 0,
+       'default_argument_fixed' => '',
+-      'default_argument_php' => '',
++      'default_argument_php' => 'if(arg(1) != \'\') { 
++return intval(substr(arg(1),0,4)); 
++} else { 
++return date_format(date_now(), \'Y\');
++}',
+       'validate_argument_node_type' => array(
++        'qs_appointment' => 0,
+         'qs_events' => 0,
+         'qs_news' => 0,
+-        'qs_appointment' => 0,
+         'qs_people' => 0,
++        'qs_slider' => 0,
+         'page' => 0,
++        'webform' => 0,
+       ),
+       'validate_argument_node_access' => 0,
+       'validate_argument_nid_type' => 'nid',
+@@ -2210,6 +2219,7 @@ function asc_quicksites_features_views_default_views() {
+     ),
+   ));
+   $handler->override_option('footer', '');
++  $handler->override_option('use_pager', 'mini');
+   $handler->override_option('path', 'news');
+   $handler->override_option('menu', array(
+     'type' => 'none',
+@@ -2739,7 +2749,6 @@ function asc_quicksites_features_views_default_views() {
+   ));
+   $handler->override_option('css_class', 'feature feature-small-2 news-image');
+   $handler->override_option('items_per_page', 4);
+-  $handler->override_option('use_pager', FALSE);
+   $handler->override_option('block_description', '');
+   $handler->override_option('block_caching', -1);
+   $handler = $view->new_display('block', 'Feature Large 1', 'block_4');
