@@ -1,0 +1,18 @@
+--- media_youtube.module.old	2013-06-11 10:39:56.000000000 -0400
++++ media_youtube.module	2013-06-11 10:40:02.000000000 -0400
+@@ -80,6 +80,15 @@ function media_youtube_file_mimetype_map
+   $mapping['mimetypes'][] = 'video/youtube';
+ }
+ 
++/*
++ * Implements hook_file_default_types_alter().
++ *
++ * Adds the video/youtube fake mimetype to video files.
++ */
++function media_youtube_file_default_types_alter(&$types) {
++  $types['video']->mimetypes[] = 'video/youtube';
++}
++
+ /**
+  * Implements hook_ctools_plugin_api().
+  */
