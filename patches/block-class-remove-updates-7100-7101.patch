@@ -1,5 +1,5 @@
---- block_class.install.original	2013-06-12 13:43:18.000000000 -0400
-+++ block_class.install	2013-06-12 13:43:26.000000000 -0400
+--- block_class.install.orig	2013-06-12 13:59:14.000000000 -0400
++++ block_class.install	2013-06-12 13:59:36.000000000 -0400
 @@ -50,73 +50,6 @@ function block_class_schema_alter(&$sche
  }
  
@@ -71,6 +71,6 @@
 -}
 -
 -/**
-  * Migration from block_class table to new field css_class in core block table.
+  * Migration from previous database structure (block_class table) to new
+  * structure based on altering the core block table.
   */
- function block_class_update_7103() {
